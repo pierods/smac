@@ -154,6 +154,7 @@ func (autoComplete *AutoComplete) putIter(intVals []int) {
 			node.isWord = true
 		}
 	}
+
 }
 
 func (autoComplete *AutoComplete) Complete(word string) ([]string, error) {
@@ -192,10 +193,11 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 		}
 		links := nodeBranch.node.links
 
+		parentString := make([]rune, len(nodeBranch.parent)+1)
+		copy(parentString, nodeBranch.parent)
+		parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
+
 		for _, link := range links {
-			parentString := make([]rune, len(nodeBranch.parent)+1)
-			copy(parentString, nodeBranch.parent)
-			parentString = append(parentString, rune(nodeBranch.node.intRune))
 			if link != nil {
 				rightBranch := branch{
 					node:   link,
