@@ -8,7 +8,7 @@ import (
 const checkMark = "\u2713"
 const ballotX = "\u2717"
 
-func Test_fIFO(t *testing.T) {
+func Test_FIFO(t *testing.T) {
 
 	var fifo fIFO
 
@@ -69,6 +69,59 @@ func Test_fIFO(t *testing.T) {
 				t.Fatal("Should be able to shrink a fifo to zero", ballotX)
 			}
 			t.Log("Should be able to shrink a fifo to zero", checkMark)
+		}
+	}
+}
+
+func Test_LIFO(t *testing.T) {
+
+	var lifo lIFO
+
+	t.Log("Given the need to test a LIFO")
+	{
+		t.Log("When initializing a LIFO")
+		{
+			if lifo.size() != 0 {
+				t.Fatal("Should be able to initialize an empty LIFO", ballotX)
+			}
+			t.Log("Shoulf be able to initialize an empty LIFO", checkMark)
+		}
+
+		t.Log("When growing/shrinking a LIFO")
+		{
+			tNp := &trieNode{}
+
+			lifo.push(tNp)
+
+			if lifo.size() != 1 {
+				t.Fatal("Should be able to grow a LIFO by 1", ballotX)
+			}
+			t.Log("Should be able to grow a LIFO by 1", checkMark)
+			newTNp := lifo.pop()
+			if newTNp != tNp {
+				t.Fatal("Should be able to pop an element from a LIFO", ballotX)
+			}
+			t.Log("Should be able to pop an element from a LIFO", checkMark)
+			tNp2 := &trieNode{}
+			tNp3 := &trieNode{}
+			lifo.push(tNp)
+			lifo.push(tNp2)
+			lifo.push(tNp3)
+			if lifo.size() != 3 {
+				t.Fatal("Should be able to grow a lifo by 3", ballotX)
+			}
+			t.Log("Should be able to grow a lifo by 3", checkMark)
+			el3 := lifo.pop()
+			el2 := lifo.pop()
+			el1 := lifo.pop()
+			if el1 != tNp || el2 != tNp2 || el3 != tNp3 {
+				t.Fatal("Should be able to shrink a lifo in order", ballotX)
+			}
+			t.Log("Should be able to shrink a lifo in order", checkMark)
+			if lifo.size() != 0 {
+				t.Fatal("Should be able to shrink a lifo to zero", ballotX)
+			}
+			t.Log("Should be able to shrink a lifo to zero", checkMark)
 		}
 	}
 }
