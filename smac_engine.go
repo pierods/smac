@@ -157,6 +157,61 @@ func (autoComplete *AutoComplete) putIter(intVals []int) {
 
 }
 
+func (autoComplete *AutoComplete) UnLearn(word string) error {
+	conv, err := autoComplete.runesToInts(word)
+	if err != nil {
+		return err
+	}
+	autoComplete.remove(conv)
+	return nil
+}
+
+func (autoComplete *AutoComplete) remove(intVals []int) {
+	node := autoComplete.root
+	lifo := lIFO{}
+
+	for _, c := range intVals {
+		if node.links[c-autoComplete.alphabetMin] == nil {
+			// not found
+			return
+		}
+		lifo.push(node)
+		node = node.links[c-autoComplete.alphabetMin]
+	}
+	if !node.isWord {
+		return
+	}
+	isLeaf := true
+	for _, link := range node.links {
+		if link != nil {
+			isLeaf = false
+			break
+		}
+	}
+	if !isLeaf {
+		node.isWord = false
+		return
+
+	} else {
+		node.isWord = false
+
+		for lifo.size() > 0 {
+			parentNode := lifo.pop()
+			parentNode.links[node.intRune] = nil
+
+			if parentNode.isWord {
+				return
+			}
+			for _, link := range parentNode.links {
+				if link != nil {
+					return
+				}
+			}
+			node = parentNode
+		}
+	}
+}
+
 func (autoComplete *AutoComplete) Complete(word string) ([]string, error) {
 
 	ints, err := autoComplete.runesToInts(word)
@@ -173,7 +228,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 	for _, c := range intRunes {
 		wordEnd = wordEnd.links[c-autoComplete.alphabetMin]
 		if wordEnd == nil {
-			return []string{word}
+			return []string{}
 		}
 	}
 
@@ -229,4 +284,20 @@ func (fifo *fIFO) remove() branch {
 }
 func (fifo *fIFO) size() int {
 	return len(fifo.slice)
+}
+
+type lIFO struct {
+	slice []*trieNode
+}
+
+func (lifo *lIFO) push(n *trieNode) {
+	lifo.slice = append(lifo.slice, n)
+}
+func (lifo *lIFO) pop() *trieNode {
+	node := lifo.slice[len(lifo.slice)-1]
+	lifo.slice = lifo.slice[:len(lifo.slice)-1]
+	return node
+}
+func (lifo *lIFO) size() int {
+	return len(lifo.slice)
 }

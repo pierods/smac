@@ -170,17 +170,67 @@ func Test_Completion(t *testing.T) {
 }
 
 func Test_Learn(t *testing.T) {
-	words := []string{"aaa"}
+	words := []string{"aaa", "b"}
 	autoComplete, _ := NewAutoCompleteS(words)
-	autoComplete.Learn("aaabbb")
-	ac, _ := autoComplete.Complete("a")
+	err := autoComplete.Learn("aaabbb")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ac, _ := autoComplete.Complete("aaa")
 	t.Log(ac)
 	t.Log("Given the need to test the Learn feature")
 	{
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaabbb"}) {
-			t.Fatal("Should be able to learn a new word", ballotX)
+			t.Fatal("Should be able to learn a new leaf word", ballotX)
 		}
 		t.Log("Should be able to learn a new word", checkMark)
 
+		err := autoComplete.Learn("aa")
+		if err != nil {
+			t.Fatal(err)
+		}
+		ac, _ = autoComplete.Complete("aa")
+
+		if !reflect.DeepEqual(ac, []string{"aa", "aaa", "aaabbb"}) {
+			t.Fatal("Should be able to learn a new non-leaf word", ballotX)
+		}
+		t.Log("Should be able to learn a new non-leaf word", checkMark)
+	}
+	t.Log("Given the need to test the UnLearn feature")
+	{
+		words := []string{"aaa", "aaab", "aaabbb", "aaabbbc", "ddd"}
+		autoComplete, _ := NewAutoCompleteS(words)
+		autoComplete.UnLearn("aaabbbc")
+		ac, _ := autoComplete.Complete("aaa")
+		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaabbb"}) {
+			t.Fatal("Should be able to unlearn a leaf", ballotX)
+		}
+		t.Log("Should be able to unlearn a leaf", checkMark)
+		autoComplete.UnLearn("aaabbb")
+		autoComplete.UnLearn("aaab")
+		ac, _ = autoComplete.Complete("aaa")
+		if !reflect.DeepEqual(ac, []string{"aaa"}) {
+			t.Fatal("Should be able to unlearn non-leaves", ballotX)
+		}
+		t.Log("Should be able to unlearn non-leaves", checkMark)
+		autoComplete.UnLearn("aaa")
+		ac, _ = autoComplete.Complete("ddd")
+		if !reflect.DeepEqual(ac, []string{"ddd"}) {
+			t.Fatal("Should be able to unlearn a branch", ballotX)
+		}
+		t.Log("Should be able to unlearn a branch", checkMark)
+		autoComplete.UnLearn("ddd")
+
+		ac, _ = autoComplete.Complete("ddd")
+		t.Log(ac)
+
+		for i, link := range autoComplete.root.links {
+			if link != nil {
+				t.Log(i)
+				t.Fatal("Should be able to unlearn whole tree", ballotX)
+			}
+		}
+		t.Log("Should be able to unlearn whole tree", checkMark)
 	}
 }

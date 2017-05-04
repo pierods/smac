@@ -1,4 +1,4 @@
-##SMAC - Small autocompletion engine in Go.
+#SMAC - Small autocompletion engine in Go.
 
 SMAC is a tiny autocompletion engine written in Go. It supports UTF-8 alphabets. Rune tables only store the offset of the rune ordinal, with respect to the lowest rune in the set of characters provided at initialization time and the word tree only stores the rune value, so to minimize the space used to store the input dictionary.
 
