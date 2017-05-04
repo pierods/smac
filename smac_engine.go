@@ -183,25 +183,25 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 	stem = stem[:len(stem)-1]
 	fifo.add(branch{
 		node:   wordEnd,
-		parent: stem,
+		parent: &stem,
 	})
 
 	for fifo.size() > 0 {
 		nodeBranch := fifo.remove()
 		if nodeBranch.node.isWord {
-			words = append(words, string(append(nodeBranch.parent, rune(nodeBranch.node.intRune))))
+			words = append(words, string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune))))
 		}
 		links := nodeBranch.node.links
 
-		parentString := make([]rune, len(nodeBranch.parent)+1)
-		copy(parentString, nodeBranch.parent)
+		parentString := make([]rune, len(*nodeBranch.parent)+1)
+		copy(parentString, *nodeBranch.parent)
 		parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
 
 		for _, link := range links {
 			if link != nil {
 				rightBranch := branch{
 					node:   link,
-					parent: parentString,
+					parent: &parentString,
 				}
 				fifo.add(rightBranch)
 			}
@@ -212,7 +212,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 
 type branch struct {
 	node   *trieNode
-	parent []rune
+	parent *[]rune
 }
 
 type fIFO struct {

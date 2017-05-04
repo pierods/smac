@@ -24,9 +24,10 @@ func Test_fIFO(t *testing.T) {
 
 		t.Log("When growing/shrinking a FIFO")
 		{
+			rarray := []rune("a")
 			a := branch{
 				node:   nil,
-				parent: []rune("a"),
+				parent: &rarray,
 			}
 
 			fifo.add(a)
@@ -40,13 +41,15 @@ func Test_fIFO(t *testing.T) {
 				t.Fatal("Should be able to retrieve an element from a FIFO", ballotX)
 			}
 			t.Log("Should be able to retrieve an element from a FIFO", checkMark)
+			rarray = []rune("b")
 			b := branch{
 				node:   nil,
-				parent: []rune("b"),
+				parent: &rarray,
 			}
+			rarray = []rune("c")
 			c := branch{
 				node:   nil,
-				parent: []rune("c"),
+				parent: &rarray,
 			}
 			fifo.add(a)
 			fifo.add(b)
@@ -162,6 +165,22 @@ func Test_Completion(t *testing.T) {
 			t.Fatal("Should be able to autocomplete on a stem word by alphabetical order and then by length", ballotX)
 		}
 		t.Log("Should be able to autocomplete on a stem word by alphabetical order and then by length", checkMark)
+
+	}
+}
+
+func Test_Learn(t *testing.T) {
+	words := []string{"aaa"}
+	autoComplete, _ := NewAutoCompleteS(words)
+	autoComplete.Learn("aaabbb")
+	ac, _ := autoComplete.Complete("a")
+	t.Log(ac)
+	t.Log("Given the need to test the Learn feature")
+	{
+		if !reflect.DeepEqual(ac, []string{"aaa", "aaabbb"}) {
+			t.Fatal("Should be able to learn a new word", ballotX)
+		}
+		t.Log("Should be able to learn a new word", checkMark)
 
 	}
 }

@@ -8,6 +8,6 @@ could be adapted to it.
 
 Performance on a 355k word dictionary on a modern computer is :
 
-* initialization time ~2 seconds
-* average completion time 3 ms 
+* initialization time ~1.5 seconds
+* average completion time 0.05 ms (20k completions/sec)
 * average nodes/words ratio is 2.7
