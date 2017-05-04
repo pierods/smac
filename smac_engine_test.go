@@ -231,7 +231,6 @@ func Test_Learn(t *testing.T) {
 	}
 
 	ac, _ := autoComplete.Complete("aaa")
-	t.Log(ac)
 	t.Log("Given the need to test the Learn feature")
 	{
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaabbb"}) {
@@ -249,6 +248,24 @@ func Test_Learn(t *testing.T) {
 			t.Fatal("Should be able to learn a new non-leaf word", ballotX)
 		}
 		t.Log("Should be able to learn a new non-leaf word", checkMark)
+	}
+	t.Log("Given the need to test the learn from scratch feature")
+	{
+		alphabet := "abcdefghijklmnopqrstuvwxyz"
+		autoComplete, _ := NewAutoCompleteE(alphabet)
+
+		ac, _ := autoComplete.Complete("aaa")
+		if !reflect.DeepEqual(ac, []string{}) {
+			t.Fatal("Should be able to correctly initialize an empty autocompleter", ballotX)
+		}
+		t.Log("Should be able to correctly initialize an empty autocompleter", checkMark)
+
+		autoComplete.Learn("aaa")
+		ac, _ = autoComplete.Complete("aaa")
+		if !reflect.DeepEqual(ac, []string{"aaa"}) {
+			t.Fatal("Should be able to learn from scratch", ballotX)
+		}
+		t.Log("Should be able to learn from scratch", checkMark)
 	}
 	t.Log("Given the need to test the UnLearn feature")
 	{
@@ -274,10 +291,7 @@ func Test_Learn(t *testing.T) {
 		}
 		t.Log("Should be able to unlearn a branch", checkMark)
 		autoComplete.UnLearn("ddd")
-
 		ac, _ = autoComplete.Complete("ddd")
-		t.Log(ac)
-
 		for i, link := range autoComplete.root.links {
 			if link != nil {
 				t.Log(i)

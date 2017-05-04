@@ -19,11 +19,36 @@ type AutoComplete struct {
 	alphabetSize int
 }
 
-func NewAutoCompleteS(words []string) (AutoComplete, error) {
-	var autoComplete AutoComplete
+func NewAutoCompleteE(alphabet string) (AutoComplete, error) {
 
-	min := 0
-	max := 0
+	var min, max int
+
+	for _, r := range alphabet {
+		i := int(r)
+		if min > i {
+			min = i
+		}
+		if max < i {
+			max = i
+		}
+	}
+
+	autoComplete := AutoComplete{
+		alphabetMin:  min,
+		alphabetMax:  max,
+		alphabetSize: max - min + 1,
+	}
+
+	autoComplete.root = &trieNode{
+		links: make([]*trieNode, autoComplete.alphabetSize),
+	}
+	return autoComplete, nil
+}
+
+func NewAutoCompleteS(words []string) (AutoComplete, error) {
+
+	var min, max int
+
 	for _, w := range words {
 		runes := []rune(w)
 		for _, r := range runes {
@@ -36,7 +61,7 @@ func NewAutoCompleteS(words []string) (AutoComplete, error) {
 		}
 
 	}
-	autoComplete = AutoComplete{
+	autoComplete := AutoComplete{
 		alphabetMin:  min,
 		alphabetMax:  max,
 		alphabetSize: max - min + 1,
@@ -55,13 +80,11 @@ func NewAutoCompleteS(words []string) (AutoComplete, error) {
 
 func NewAutoCompleteF(fileName string) (AutoComplete, error) {
 
-	var autoComplete AutoComplete
-
 	f, err := os.Open(fileName)
 	defer f.Close()
 
 	if err != nil {
-		return autoComplete, err
+		return AutoComplete{}, err
 	}
 
 	lineScanner := bufio.NewScanner(f)
@@ -81,7 +104,7 @@ func NewAutoCompleteF(fileName string) (AutoComplete, error) {
 		}
 	}
 
-	autoComplete = AutoComplete{
+	autoComplete := AutoComplete{
 		alphabetMin:  min,
 		alphabetMax:  max,
 		alphabetSize: max - min + 1,
