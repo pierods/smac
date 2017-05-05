@@ -9,6 +9,7 @@ import (
 type trieNode struct {
 	isWord  bool
 	intRune int
+	accepts int
 	links   []*trieNode
 }
 
@@ -125,6 +126,21 @@ func NewAutoCompleteF(fileName string) (AutoComplete, error) {
 	return autoComplete, nil
 }
 
+func (autoComplete *AutoComplete) Accept(acceptedWord string) {
+	acceptedWordInts, err := autoComplete.runesToInts(acceptedWord)
+	if err != nil {
+		return
+	}
+	node := autoComplete.root
+	for _, c := range acceptedWordInts {
+		if node.links[c-autoComplete.alphabetMin] == nil {
+			return
+		}
+		node = node.links[c-autoComplete.alphabetMin]
+	}
+	node.accepts++
+}
+
 func (autoComplete *AutoComplete) runesToInts(word string) ([]int, error) {
 	runes := []rune(word)
 	var conv []int
@@ -195,7 +211,6 @@ func (autoComplete *AutoComplete) remove(intVals []int) {
 
 	for _, c := range intVals {
 		if node.links[c-autoComplete.alphabetMin] == nil {
-			// not found
 			return
 		}
 		lifo.push(node)
@@ -255,7 +270,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 		}
 	}
 
-	words := []string{}
+	words := SOLILI{}
 	fifo := fIFO{}
 	stem := []rune(word)
 	stem = stem[:len(stem)-1]
@@ -267,7 +282,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 	for fifo.size() > 0 {
 		nodeBranch := fifo.remove()
 		if nodeBranch.node.isWord {
-			words = append(words, string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune))))
+			words.Insert(string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune))), nodeBranch.node.accepts)
 		}
 		links := nodeBranch.node.links
 
@@ -285,7 +300,66 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 			}
 		}
 	}
-	return words
+	return words.Flush()
+}
+
+type wordHit struct {
+	word    string
+	accepts int
+	next    *wordHit
+}
+
+type SOLILI struct {
+	start *wordHit
+	end   *wordHit
+}
+
+func (list *SOLILI) Insert(word string, accepts int) {
+	hit := &wordHit{
+		word:    word,
+		accepts: accepts,
+	}
+	if list.start == nil {
+		list.start = hit
+		list.end = hit
+		return
+	}
+
+	if accepts == 0 {
+		list.end.next = hit
+		list.end = hit
+		return
+	}
+
+	if hit.accepts > list.start.accepts {
+		hit.next = list.start
+		list.start = hit
+		return
+	}
+	cursor := list.start
+	for cursor.next != nil {
+		if hit.accepts > cursor.next.accepts {
+			break
+		}
+		cursor = cursor.next
+	}
+	hit.next = cursor.next
+	cursor.next = hit
+}
+
+func (list *SOLILI) Flush() []string {
+
+	slice := []string{}
+
+	if list.start != nil {
+		cursor := list.start
+		for cursor != nil {
+			slice = append(slice, cursor.word)
+			cursor = cursor.next
+		}
+	}
+
+	return slice
 }
 
 type branch struct {

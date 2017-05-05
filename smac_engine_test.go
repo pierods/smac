@@ -8,6 +8,58 @@ import (
 const checkMark = "\u2713"
 const ballotX = "\u2717"
 
+func Test_SOLILI(t *testing.T) {
+
+	t.Log("Given the need to test a sorted linked list")
+	{
+		t.Log("When initializing a solili")
+		{
+			list := SOLILI{}
+			slice := list.Flush()
+			if !reflect.DeepEqual(slice, []string{}) {
+				t.Fatal("Should be able to correctly initialize an empty solili", ballotX)
+			}
+			t.Log("Should be able to correctly initialize an empty solili", checkMark)
+			list.Insert("aaa", 0)
+			slice = list.Flush()
+			if !reflect.DeepEqual(slice, []string{"aaa"}) {
+				t.Fatal("Should be able to correctly add an element to a solili", ballotX)
+			}
+			t.Log("Should be able to correctly add an element to a solili", checkMark)
+			list.Insert("bbb", 0)
+			slice = list.Flush()
+			if !reflect.DeepEqual(slice, []string{"aaa", "bbb"}) {
+				t.Fatal("Should be able to correctly add an element to the back of a solili", ballotX)
+			}
+			t.Log("Should be able to correctly add an element to the back of a solili", checkMark)
+			list.Insert("jjj", 100)
+			slice = list.Flush()
+			if !reflect.DeepEqual(slice, []string{"jjj", "aaa", "bbb"}) {
+				t.Fatal("Should be able to correctly add an element to the front of a solili", ballotX)
+			}
+			t.Log("Should be able to correctly add an element to the front of a solili", checkMark)
+			list.Insert("kkk", 90)
+			slice = list.Flush()
+			if !reflect.DeepEqual(slice, []string{"jjj", "kkk", "aaa", "bbb"}) {
+				t.Fatal("Should be able to correctly add an element in the middle of a solili", ballotX)
+			}
+			t.Log("Should be able to correctly add an element in the middle of a solili", checkMark)
+			list.Insert("lll", 100)
+			slice = list.Flush()
+			if !reflect.DeepEqual(slice, []string{"jjj", "lll", "kkk", "aaa", "bbb"}) {
+				t.Fatal("Should be able to maintain arrival order for same-weight elements (at head)", ballotX)
+			}
+			t.Log("Should be able to maintain arrival order for same-weight elements (at head)", checkMark)
+			list.Insert("mmm", 90)
+			slice = list.Flush()
+			if !reflect.DeepEqual(slice, []string{"jjj", "lll", "kkk", "mmm", "aaa", "bbb"}) {
+				t.Fatal("Should be able to maintain arrival order for same-weight elements", ballotX)
+			}
+			t.Log("Should be able to maintain arrival order for same-weight elements", checkMark)
+		}
+	}
+}
+
 func Test_FIFO(t *testing.T) {
 
 	var fifo fIFO
@@ -299,5 +351,27 @@ func Test_Learn(t *testing.T) {
 			}
 		}
 		t.Log("Should be able to unlearn whole tree", checkMark)
+	}
+}
+func Test_Accept(t *testing.T) {
+	t.Log("Given the need to test the Accept feature")
+	{
+		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"} // Complete() always sorts by length and then alphabetically
+		autoComplete, _ := NewAutoCompleteS(words)
+		autoComplete.Accept("aaad")
+		ac, _ := autoComplete.Complete("aaa")
+
+		if !reflect.DeepEqual(ac, []string{"aaad", "aaa", "aaab", "aaac", "aaabbb"}) {
+			t.Fatal("Should be able to prioritize a word", ballotX)
+		}
+		t.Log("Should be able to prioritize a word", checkMark)
+		autoComplete.Accept("aaad")
+		autoComplete.Accept("aaac")
+		ac, _ = autoComplete.Complete("aaa")
+		t.Log(ac)
+		if !reflect.DeepEqual(ac, []string{"aaad", "aaac", "aaa", "aaab", "aaabbb"}) {
+			t.Fatal("Should be able to prioritize prioritized words", ballotX)
+		}
+		t.Log("Should be able to prioritize prioritized words", checkMark)
 	}
 }
