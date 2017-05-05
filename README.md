@@ -1,5 +1,5 @@
 
-#SMAC - Small autocompletion engine in Go.
+# SMAC - Small autocompletion engine in Go.
 
 SMAC is a tiny autocompletion engine written in Go. It supports UTF-8 alphabets. 
 
