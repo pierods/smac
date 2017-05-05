@@ -321,7 +321,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 		}
 		links := nodeBranch.node.links
 
-		if len(*nodeBranch.parent) < autoComplete.radius {
+		if len(*nodeBranch.parent) < autoComplete.radius-1 {
 			parentString := make([]rune, len(*nodeBranch.parent)+1)
 			copy(parentString, *nodeBranch.parent)
 			parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
@@ -395,7 +395,6 @@ func (list *sOLILI) flush() []string {
 			cursor = cursor.next
 		}
 	}
-
 	return slice
 }
 

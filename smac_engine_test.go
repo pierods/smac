@@ -368,7 +368,6 @@ func Test_Accept(t *testing.T) {
 		autoComplete.Accept("aaad")
 		autoComplete.Accept("aaac")
 		ac, _ = autoComplete.Complete("aaa")
-		t.Log(ac)
 		if !reflect.DeepEqual(ac, []string{"aaad", "aaac", "aaa", "aaab", "aaabbb"}) {
 			t.Fatal("Should be able to prioritize prioritized words", ballotX)
 		}
@@ -386,5 +385,15 @@ func Test_ResultSizeAndRadius(t *testing.T) {
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaac"}) {
 			t.Fatal("Should be able to limit result set size", ballotX)
 		}
+	}
+	t.Log("Given the need to test the radius feature")
+	{
+		words := []string{"1234", "12345", "123456", "1234567", "12345678"}
+		autoComplete, _ := NewAutoCompleteS(words, 10, 4)
+		ac, _ := autoComplete.Complete("1234")
+		if !reflect.DeepEqual(ac, []string{"1234"}) {
+			t.Fatal("Should be able to limit radius", ballotX)
+		}
+		t.Log("Should be able to limit radius", checkMark)
 	}
 }
