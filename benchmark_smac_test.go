@@ -10,7 +10,7 @@ func init() {
 
 	wordFile := goPath + "/src/github.com/pierods/smac/allwords.txt"
 
-	autoComplete, err := NewAutoCompleteF(wordFile)
+	autoComplete, err := NewAutoCompleteF(wordFile, 0, 0)
 	if err != nil {
 		os.Exit(-1)
 	}

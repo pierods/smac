@@ -6,6 +6,9 @@ import (
 	"os"
 )
 
+const DEF_RESULTS_SIZE = 10
+const DEF_RADIUS = 15
+
 type trieNode struct {
 	isWord  bool
 	intRune int
@@ -18,9 +21,11 @@ type AutoComplete struct {
 	alphabetMin  int
 	alphabetMax  int
 	alphabetSize int
+	resultSize   int
+	radius       int
 }
 
-func NewAutoCompleteE(alphabet string) (AutoComplete, error) {
+func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, error) {
 
 	var min, max int
 
@@ -34,10 +39,19 @@ func NewAutoCompleteE(alphabet string) (AutoComplete, error) {
 		}
 	}
 
+	if resultSize == 0 {
+		resultSize = DEF_RESULTS_SIZE
+	}
+	if radius == 0 {
+		radius = DEF_RADIUS
+	}
+
 	autoComplete := AutoComplete{
 		alphabetMin:  min,
 		alphabetMax:  max,
 		alphabetSize: max - min + 1,
+		resultSize:   int(resultSize),
+		radius:       int(radius),
 	}
 
 	autoComplete.root = &trieNode{
@@ -46,7 +60,7 @@ func NewAutoCompleteE(alphabet string) (AutoComplete, error) {
 	return autoComplete, nil
 }
 
-func NewAutoCompleteS(words []string) (AutoComplete, error) {
+func NewAutoCompleteS(words []string, resultSize, radius uint) (AutoComplete, error) {
 
 	var min, max int
 
@@ -62,10 +76,19 @@ func NewAutoCompleteS(words []string) (AutoComplete, error) {
 		}
 
 	}
+
+	if resultSize == 0 {
+		resultSize = DEF_RESULTS_SIZE
+	}
+	if radius == 0 {
+		radius = DEF_RADIUS
+	}
 	autoComplete := AutoComplete{
 		alphabetMin:  min,
 		alphabetMax:  max,
 		alphabetSize: max - min + 1,
+		resultSize:   int(resultSize),
+		radius:       int(radius),
 	}
 
 	autoComplete.root = &trieNode{
@@ -79,7 +102,7 @@ func NewAutoCompleteS(words []string) (AutoComplete, error) {
 	return autoComplete, nil
 }
 
-func NewAutoCompleteF(fileName string) (AutoComplete, error) {
+func NewAutoCompleteF(fileName string, resultSize, radius uint) (AutoComplete, error) {
 
 	f, err := os.Open(fileName)
 	defer f.Close()
@@ -105,10 +128,18 @@ func NewAutoCompleteF(fileName string) (AutoComplete, error) {
 		}
 	}
 
+	if resultSize == 0 {
+		resultSize = DEF_RESULTS_SIZE
+	}
+	if radius == 0 {
+		radius = DEF_RADIUS
+	}
 	autoComplete := AutoComplete{
 		alphabetMin:  min,
 		alphabetMax:  max,
 		alphabetSize: max - min + 1,
+		resultSize:   int(resultSize),
+		radius:       int(radius),
 	}
 
 	f.Seek(0, 0)
@@ -262,7 +293,6 @@ func (autoComplete *AutoComplete) Complete(word string) ([]string, error) {
 func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string {
 
 	wordEnd := autoComplete.root
-
 	for _, c := range intRunes {
 		wordEnd = wordEnd.links[c-autoComplete.alphabetMin]
 		if wordEnd == nil {
@@ -270,7 +300,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 		}
 	}
 
-	words := SOLILI{}
+	words := sOLILI{}
 	fifo := fIFO{}
 	stem := []rune(word)
 	stem = stem[:len(stem)-1]
@@ -278,29 +308,36 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 		node:   wordEnd,
 		parent: &stem,
 	})
-
+	results := 0
 	for fifo.size() > 0 {
+		if results == autoComplete.resultSize {
+			break
+		}
+
 		nodeBranch := fifo.remove()
 		if nodeBranch.node.isWord {
-			words.Insert(string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune))), nodeBranch.node.accepts)
+			words.insert(string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune))), nodeBranch.node.accepts)
+			results++
 		}
 		links := nodeBranch.node.links
 
-		parentString := make([]rune, len(*nodeBranch.parent)+1)
-		copy(parentString, *nodeBranch.parent)
-		parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
+		if len(*nodeBranch.parent) < autoComplete.radius {
+			parentString := make([]rune, len(*nodeBranch.parent)+1)
+			copy(parentString, *nodeBranch.parent)
+			parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
 
-		for _, link := range links {
-			if link != nil {
-				rightBranch := branch{
-					node:   link,
-					parent: &parentString,
+			for _, link := range links {
+				if link != nil {
+					rightBranch := branch{
+						node:   link,
+						parent: &parentString,
+					}
+					fifo.add(rightBranch)
 				}
-				fifo.add(rightBranch)
 			}
 		}
 	}
-	return words.Flush()
+	return words.flush()
 }
 
 type wordHit struct {
@@ -309,12 +346,12 @@ type wordHit struct {
 	next    *wordHit
 }
 
-type SOLILI struct {
+type sOLILI struct {
 	start *wordHit
 	end   *wordHit
 }
 
-func (list *SOLILI) Insert(word string, accepts int) {
+func (list *sOLILI) insert(word string, accepts int) {
 	hit := &wordHit{
 		word:    word,
 		accepts: accepts,
@@ -347,7 +384,7 @@ func (list *SOLILI) Insert(word string, accepts int) {
 	cursor.next = hit
 }
 
-func (list *SOLILI) Flush() []string {
+func (list *sOLILI) flush() []string {
 
 	slice := []string{}
 

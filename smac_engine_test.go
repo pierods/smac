@@ -14,44 +14,44 @@ func Test_SOLILI(t *testing.T) {
 	{
 		t.Log("When initializing a solili")
 		{
-			list := SOLILI{}
-			slice := list.Flush()
+			list := sOLILI{}
+			slice := list.flush()
 			if !reflect.DeepEqual(slice, []string{}) {
 				t.Fatal("Should be able to correctly initialize an empty solili", ballotX)
 			}
 			t.Log("Should be able to correctly initialize an empty solili", checkMark)
-			list.Insert("aaa", 0)
-			slice = list.Flush()
+			list.insert("aaa", 0)
+			slice = list.flush()
 			if !reflect.DeepEqual(slice, []string{"aaa"}) {
 				t.Fatal("Should be able to correctly add an element to a solili", ballotX)
 			}
 			t.Log("Should be able to correctly add an element to a solili", checkMark)
-			list.Insert("bbb", 0)
-			slice = list.Flush()
+			list.insert("bbb", 0)
+			slice = list.flush()
 			if !reflect.DeepEqual(slice, []string{"aaa", "bbb"}) {
 				t.Fatal("Should be able to correctly add an element to the back of a solili", ballotX)
 			}
 			t.Log("Should be able to correctly add an element to the back of a solili", checkMark)
-			list.Insert("jjj", 100)
-			slice = list.Flush()
+			list.insert("jjj", 100)
+			slice = list.flush()
 			if !reflect.DeepEqual(slice, []string{"jjj", "aaa", "bbb"}) {
 				t.Fatal("Should be able to correctly add an element to the front of a solili", ballotX)
 			}
 			t.Log("Should be able to correctly add an element to the front of a solili", checkMark)
-			list.Insert("kkk", 90)
-			slice = list.Flush()
+			list.insert("kkk", 90)
+			slice = list.flush()
 			if !reflect.DeepEqual(slice, []string{"jjj", "kkk", "aaa", "bbb"}) {
 				t.Fatal("Should be able to correctly add an element in the middle of a solili", ballotX)
 			}
 			t.Log("Should be able to correctly add an element in the middle of a solili", checkMark)
-			list.Insert("lll", 100)
-			slice = list.Flush()
+			list.insert("lll", 100)
+			slice = list.flush()
 			if !reflect.DeepEqual(slice, []string{"jjj", "lll", "kkk", "aaa", "bbb"}) {
 				t.Fatal("Should be able to maintain arrival order for same-weight elements (at head)", ballotX)
 			}
 			t.Log("Should be able to maintain arrival order for same-weight elements (at head)", checkMark)
-			list.Insert("mmm", 90)
-			slice = list.Flush()
+			list.insert("mmm", 90)
+			slice = list.flush()
 			if !reflect.DeepEqual(slice, []string{"jjj", "lll", "kkk", "mmm", "aaa", "bbb"}) {
 				t.Fatal("Should be able to maintain arrival order for same-weight elements", ballotX)
 			}
@@ -182,7 +182,7 @@ func Test_RunesToInts(t *testing.T) {
 
 	words := []string{"aaa", "aaaa", "aaab", "aaac"}
 
-	autoComplete, _ := NewAutoCompleteS(words)
+	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
 
 	t.Log("Given the need to test the runesToInts() function")
 	{
@@ -222,7 +222,7 @@ func Test_RunesToInts(t *testing.T) {
 func Test_TrieConstruction(t *testing.T) {
 	words := []string{"abc"}
 
-	autoComplete, _ := NewAutoCompleteS(words)
+	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
 
 	t.Log("Given the need to test the putIter() function")
 	{
@@ -256,7 +256,7 @@ func Test_TrieConstruction(t *testing.T) {
 func Test_Completion(t *testing.T) {
 
 	words := []string{"aaa", "aaab", "aaac", "aaad", "abbbbb"}
-	autoComplete, _ := NewAutoCompleteS(words)
+	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
 	ac1, _ := autoComplete.Complete("aaa")
 
 	t.Log("Given the need to test the completion feature")
@@ -276,7 +276,7 @@ func Test_Completion(t *testing.T) {
 
 func Test_Learn(t *testing.T) {
 	words := []string{"aaa", "b"}
-	autoComplete, _ := NewAutoCompleteS(words)
+	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
 	err := autoComplete.Learn("aaabbb")
 	if err != nil {
 		t.Fatal(err)
@@ -304,7 +304,7 @@ func Test_Learn(t *testing.T) {
 	t.Log("Given the need to test the learn from scratch feature")
 	{
 		alphabet := "abcdefghijklmnopqrstuvwxyz"
-		autoComplete, _ := NewAutoCompleteE(alphabet)
+		autoComplete, _ := NewAutoCompleteE(alphabet, 0, 0)
 
 		ac, _ := autoComplete.Complete("aaa")
 		if !reflect.DeepEqual(ac, []string{}) {
@@ -322,7 +322,7 @@ func Test_Learn(t *testing.T) {
 	t.Log("Given the need to test the UnLearn feature")
 	{
 		words := []string{"aaa", "aaab", "aaabbb", "aaabbbc", "ddd"}
-		autoComplete, _ := NewAutoCompleteS(words)
+		autoComplete, _ := NewAutoCompleteS(words, 0, 0)
 		autoComplete.UnLearn("aaabbbc")
 		ac, _ := autoComplete.Complete("aaa")
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaabbb"}) {
@@ -357,7 +357,7 @@ func Test_Accept(t *testing.T) {
 	t.Log("Given the need to test the Accept feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"} // Complete() always sorts by length and then alphabetically
-		autoComplete, _ := NewAutoCompleteS(words)
+		autoComplete, _ := NewAutoCompleteS(words, 0, 0)
 		autoComplete.Accept("aaad")
 		ac, _ := autoComplete.Complete("aaa")
 
@@ -373,5 +373,18 @@ func Test_Accept(t *testing.T) {
 			t.Fatal("Should be able to prioritize prioritized words", ballotX)
 		}
 		t.Log("Should be able to prioritize prioritized words", checkMark)
+	}
+}
+
+func Test_ResultSizeAndRadius(t *testing.T) {
+	t.Log("Given the need to test the Result size feature")
+	{
+		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"}
+		autoComplete, _ := NewAutoCompleteS(words, 3, 4)
+		ac, _ := autoComplete.Complete("aaa")
+
+		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaac"}) {
+			t.Fatal("Should be able to limit result set size", ballotX)
+		}
 	}
 }
