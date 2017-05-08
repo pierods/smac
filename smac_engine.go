@@ -3,6 +3,7 @@ package smac
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -28,17 +29,11 @@ type AutoComplete struct {
 
 func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, error) {
 
-	var min, max int
-
-	for _, r := range alphabet {
-		i := int(r)
-		if min > i {
-			min = i
-		}
-		if max < i {
-			max = i
-		}
+	var nAc AutoComplete
+	if len(alphabet) == 0 {
+		return nAc, errors.New("Empty alphabet")
 	}
+	min, max := minMax([]rune(alphabet))
 
 	if resultSize == 0 {
 		resultSize = DEF_RESULTS_SIZE
@@ -48,9 +43,9 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, e
 	}
 
 	autoComplete := AutoComplete{
-		alphabetMin:  min,
-		alphabetMax:  max,
-		alphabetSize: max - min + 1,
+		alphabetMin:  int(min),
+		alphabetMax:  int(max),
+		alphabetSize: int(max) - int(min) + 1,
 		resultSize:   int(resultSize),
 		radius:       int(radius),
 		newWords:     make(map[string]byte),
@@ -64,16 +59,12 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, e
 
 func NewAutoCompleteS(alphabet string, words []string, resultSize, radius uint) (AutoComplete, error) {
 
-	var min, max int
+	var nAc AutoComplete
 
-	for _, r := range alphabet {
-		if min > int(r) {
-			min = int(r)
-		}
-		if max < int(r) {
-			max = int(r)
-		}
+	if len(alphabet) == 0 {
+		return nAc, errors.New("Empty alphabet")
 	}
+	min, max := minMax([]rune(alphabet))
 
 	if resultSize == 0 {
 		resultSize = DEF_RESULTS_SIZE
@@ -82,9 +73,9 @@ func NewAutoCompleteS(alphabet string, words []string, resultSize, radius uint) 
 		radius = DEF_RADIUS
 	}
 	autoComplete := AutoComplete{
-		alphabetMin:  min,
-		alphabetMax:  max,
-		alphabetSize: max - min + 1,
+		alphabetMin:  int(min),
+		alphabetMax:  int(max),
+		alphabetSize: int(max) - int(min) + 1,
 		resultSize:   int(resultSize),
 		radius:       int(radius),
 		newWords:     make(map[string]byte),
@@ -94,7 +85,6 @@ func NewAutoCompleteS(alphabet string, words []string, resultSize, radius uint) 
 		links: make([]*trieNode, autoComplete.alphabetSize),
 	}
 
-	var nAc AutoComplete
 	for _, w := range words {
 		err := autoComplete.put(w)
 		if err != nil {
@@ -105,7 +95,40 @@ func NewAutoCompleteS(alphabet string, words []string, resultSize, radius uint) 
 	return autoComplete, nil
 }
 
+func minMax(runes []rune) (rune, rune) {
+
+	if len(runes) == 1 {
+		return runes[0], runes[0]
+	}
+
+	var min, max rune
+
+	if runes[0] > runes[1] {
+		max = runes[0]
+		min = runes[1]
+	} else {
+		max = runes[1]
+		min = runes[0]
+	}
+
+	for i := 2; i < len(runes); i++ {
+		if runes[i] > max {
+			max = runes[i]
+		} else if runes[i] < min {
+			min = runes[i]
+		}
+	}
+
+	return min, max
+}
+
 func NewAutoCompleteF(alphabet, fileName string, resultSize, radius uint) (AutoComplete, error) {
+
+	var nAc AutoComplete
+	if len(alphabet) == 0 {
+		return nAc, errors.New("Empty alphabet")
+	}
+	min, max := minMax([]rune(alphabet))
 
 	if resultSize == 0 {
 		resultSize = DEF_RESULTS_SIZE
@@ -114,21 +137,10 @@ func NewAutoCompleteF(alphabet, fileName string, resultSize, radius uint) (AutoC
 		radius = DEF_RADIUS
 	}
 
-	var min, max int
-
-	for _, r := range alphabet {
-		if min > int(r) {
-			min = int(r)
-		}
-		if max < int(r) {
-			max = int(r)
-		}
-	}
-
 	autoComplete := AutoComplete{
-		alphabetMin:  min,
-		alphabetMax:  max,
-		alphabetSize: max - min + 1,
+		alphabetMin:  int(min),
+		alphabetMax:  int(max),
+		alphabetSize: int(max) - int(min) + 1,
 		resultSize:   int(resultSize),
 		radius:       int(radius),
 		newWords:     make(map[string]byte),
@@ -136,8 +148,6 @@ func NewAutoCompleteF(alphabet, fileName string, resultSize, radius uint) (AutoC
 
 	f, err := os.Open(fileName)
 	defer f.Close()
-
-	var nAc AutoComplete
 
 	if err != nil {
 		return nAc, err
@@ -276,7 +286,7 @@ func (autoComplete *AutoComplete) remove(intVals []int) {
 
 		for lifo.size() > 0 {
 			parentNode := lifo.pop()
-			parentNode.links[node.intRune] = nil
+			parentNode.links[node.intRune-autoComplete.alphabetMin] = nil
 
 			if parentNode.isWord {
 				return
@@ -326,7 +336,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 
 		nodeBranch := fifo.remove()
 		if nodeBranch.node.isWord {
-			words.insert(string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune+autoComplete.alphabetMin))), nodeBranch.node.accepts)
+			words.insert(string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune))), nodeBranch.node.accepts)
 			results++
 		}
 		links := nodeBranch.node.links
@@ -448,38 +458,42 @@ func (lifo *lIFO) size() int {
 func (autoComplete *AutoComplete) Save(fileName string) error {
 
 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-
 	if err != nil {
 		return err
 	}
 
-	if err := f.Close(); err != nil {
-		return err
-	}
-
-	eRunes := []rune{}
-
 	fifo := fIFO{}
+	var nSlice []rune
+
 	fifo.add(branch{
 		node:   autoComplete.root,
-		parent: &eRunes,
+		parent: &nSlice,
 	})
+
 	for fifo.size() > 0 {
 
 		nodeBranch := fifo.remove()
 		if nodeBranch.node.isWord {
-			currWord := string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune+autoComplete.alphabetMin)))
+			currWord := string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune)))
+			fmt.Println([]rune(currWord))
 			if nodeBranch.node.accepts > 0 {
-				// save word/ accept combo
+				fmt.Println("accepts > 0", currWord)
 			} else if _, exists := autoComplete.newWords[currWord]; exists {
-				// save
+				fmt.Println("new word:", currWord)
 			}
 		}
 		links := nodeBranch.node.links
 
-		parentString := make([]rune, len(*nodeBranch.parent)+1)
-		copy(parentString, *nodeBranch.parent)
-		parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
+		var parentString []rune
+
+		if *nodeBranch.parent != nil {
+			parentString = make([]rune, len(*nodeBranch.parent)+1)
+			copy(parentString, *nodeBranch.parent)
+			parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
+
+		} else {
+			parentString = []rune{}
+		}
 
 		for _, link := range links {
 			if link != nil {
@@ -493,5 +507,5 @@ func (autoComplete *AutoComplete) Save(fileName string) error {
 
 	}
 
-	return nil
+	return f.Close()
 }

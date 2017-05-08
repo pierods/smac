@@ -229,7 +229,7 @@ func Test_TrieConstruction(t *testing.T) {
 
 	t.Log("Given the need to test the putIter() function")
 	{
-		a := autoComplete.root.links[97]
+		a := autoComplete.root.links[0]
 		if a == nil {
 			t.Fatal("Should be able to insert first character of a word in tree", ballotX)
 		}
@@ -240,7 +240,7 @@ func Test_TrieConstruction(t *testing.T) {
 			t.Fatal("Should be able to insert first character of a word in tree", ballotX)
 		}
 		t.Log("Should be able to insert first character of a word in tree", checkMark)
-		b := a.links[98]
+		b := a.links[1]
 		if b.intRune != 98 {
 			t.Fatal("Should be able to insert second character of a word in tree", ballotX)
 		}
@@ -248,7 +248,7 @@ func Test_TrieConstruction(t *testing.T) {
 			t.Fatal("Should be able to insert second character of a word in tree", ballotX)
 		}
 		t.Log("Should be able to insert second character of a word in tree", checkMark)
-		c := b.links[99]
+		c := b.links[2]
 		if !c.isWord {
 			t.Fatal("Should be able to insert a word in tree", ballotX)
 		}
@@ -274,6 +274,11 @@ func Test_Completion(t *testing.T) {
 		}
 		t.Log("Should be able to autocomplete on a stem word by alphabetical order and then by length", checkMark)
 
+		_, err := NewAutoCompleteS(alphabet, []string{"漢", "字"}, 0, 0)
+		if err == nil {
+			t.Fatal("Should be able to reject non-alphabet words", ballotX)
+		}
+		t.Log("Should be able to reject non-alphabet words", checkMark)
 	}
 }
 
@@ -395,12 +400,15 @@ func Test_ResultSizeAndRadius(t *testing.T) {
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaac"}) {
 			t.Fatal("Should be able to limit result set size", ballotX)
 		}
+		t.Log("Should be able to limit result set size", checkMark)
 	}
 	t.Log("Given the need to test the radius feature")
 	{
+		numAlphabet := "1234567890"
 		words := []string{"1234", "12345", "123456", "1234567", "12345678"}
-		autoComplete, _ := NewAutoCompleteS(alphabet, words, 10, 4)
+		autoComplete, _ := NewAutoCompleteS(numAlphabet, words, 10, 4)
 		ac, _ := autoComplete.Complete("1234")
+		t.Log(ac)
 		if !reflect.DeepEqual(ac, []string{"1234"}) {
 			t.Fatal("Should be able to limit radius", ballotX)
 		}
