@@ -1,12 +1,15 @@
 package smac
 
 import (
+	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 )
 
 const checkMark = "\u2713"
 const ballotX = "\u2717"
+const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 func Test_SOLILI(t *testing.T) {
 
@@ -182,7 +185,7 @@ func Test_RunesToInts(t *testing.T) {
 
 	words := []string{"aaa", "aaaa", "aaab", "aaac"}
 
-	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
+	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 
 	t.Log("Given the need to test the runesToInts() function")
 	{
@@ -222,7 +225,7 @@ func Test_RunesToInts(t *testing.T) {
 func Test_TrieConstruction(t *testing.T) {
 	words := []string{"abc"}
 
-	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
+	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 
 	t.Log("Given the need to test the putIter() function")
 	{
@@ -256,7 +259,7 @@ func Test_TrieConstruction(t *testing.T) {
 func Test_Completion(t *testing.T) {
 
 	words := []string{"aaa", "aaab", "aaac", "aaad", "abbbbb"}
-	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
+	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 	ac1, _ := autoComplete.Complete("aaa")
 
 	t.Log("Given the need to test the completion feature")
@@ -276,7 +279,7 @@ func Test_Completion(t *testing.T) {
 
 func Test_Learn(t *testing.T) {
 	words := []string{"aaa", "b"}
-	autoComplete, _ := NewAutoCompleteS(words, 0, 0)
+	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 	err := autoComplete.Learn("aaabbb")
 	if err != nil {
 		t.Fatal(err)
@@ -288,8 +291,11 @@ func Test_Learn(t *testing.T) {
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaabbb"}) {
 			t.Fatal("Should be able to learn a new leaf word", ballotX)
 		}
-		t.Log("Should be able to learn a new word", checkMark)
-
+		t.Log("Should be able to learn a new leaf word", checkMark)
+		if len(autoComplete.newWords) != 1 {
+			t.Fatal("Should be able to correctly handle new word map", ballotX)
+		}
+		t.Log("Should be able to correctly handle new word map", checkMark)
 		err := autoComplete.Learn("aa")
 		if err != nil {
 			t.Fatal(err)
@@ -322,13 +328,17 @@ func Test_Learn(t *testing.T) {
 	t.Log("Given the need to test the UnLearn feature")
 	{
 		words := []string{"aaa", "aaab", "aaabbb", "aaabbbc", "ddd"}
-		autoComplete, _ := NewAutoCompleteS(words, 0, 0)
+		autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 		autoComplete.UnLearn("aaabbbc")
 		ac, _ := autoComplete.Complete("aaa")
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaabbb"}) {
 			t.Fatal("Should be able to unlearn a leaf", ballotX)
 		}
 		t.Log("Should be able to unlearn a leaf", checkMark)
+		if len(autoComplete.newWords) != 0 {
+			t.Fatal("Should be able to correctly handle new word map")
+		}
+		t.Log("Should be able to correctly handle new word map")
 		autoComplete.UnLearn("aaabbb")
 		autoComplete.UnLearn("aaab")
 		ac, _ = autoComplete.Complete("aaa")
@@ -357,7 +367,7 @@ func Test_Accept(t *testing.T) {
 	t.Log("Given the need to test the Accept feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"} // Complete() always sorts by length and then alphabetically
-		autoComplete, _ := NewAutoCompleteS(words, 0, 0)
+		autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 		autoComplete.Accept("aaad")
 		ac, _ := autoComplete.Complete("aaa")
 
@@ -379,7 +389,7 @@ func Test_ResultSizeAndRadius(t *testing.T) {
 	t.Log("Given the need to test the Result size feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"}
-		autoComplete, _ := NewAutoCompleteS(words, 3, 4)
+		autoComplete, _ := NewAutoCompleteS(alphabet, words, 3, 4)
 		ac, _ := autoComplete.Complete("aaa")
 
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaac"}) {
@@ -389,11 +399,27 @@ func Test_ResultSizeAndRadius(t *testing.T) {
 	t.Log("Given the need to test the radius feature")
 	{
 		words := []string{"1234", "12345", "123456", "1234567", "12345678"}
-		autoComplete, _ := NewAutoCompleteS(words, 10, 4)
+		autoComplete, _ := NewAutoCompleteS(alphabet, words, 10, 4)
 		ac, _ := autoComplete.Complete("1234")
 		if !reflect.DeepEqual(ac, []string{"1234"}) {
 			t.Fatal("Should be able to limit radius", ballotX)
 		}
 		t.Log("Should be able to limit radius", checkMark)
 	}
+}
+
+func Test_Save(t *testing.T) {
+
+	tempDir := os.TempDir()
+	tempFile, err := ioutil.TempFile(tempDir, "smac")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	words := []string{"aaa", "bbb", "ccc"}
+	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+	autoComplete.Learn("ddd")
+	t.Log(tempFile.Name())
+	autoComplete.Save(tempFile.Name())
+
 }

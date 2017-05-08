@@ -10,7 +10,8 @@ func init() {
 
 	wordFile := goPath + "/src/github.com/pierods/smac/allwords.txt"
 
-	autoComplete, err := NewAutoCompleteF(wordFile, 0, 0)
+	benchAlphabet := "abcdefghijklmnopqrstuvwxyz1234567890'/&\""
+	autoComplete, err := NewAutoCompleteF(benchAlphabet, wordFile, 0, 0)
 	if err != nil {
 		os.Exit(-1)
 	}

@@ -23,6 +23,7 @@ type AutoComplete struct {
 	alphabetSize int
 	resultSize   int
 	radius       int
+	newWords     map[string]byte
 }
 
 func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, error) {
@@ -52,6 +53,7 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, e
 		alphabetSize: max - min + 1,
 		resultSize:   int(resultSize),
 		radius:       int(radius),
+		newWords:     make(map[string]byte),
 	}
 
 	autoComplete.root = &trieNode{
@@ -60,21 +62,17 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, e
 	return autoComplete, nil
 }
 
-func NewAutoCompleteS(words []string, resultSize, radius uint) (AutoComplete, error) {
+func NewAutoCompleteS(alphabet string, words []string, resultSize, radius uint) (AutoComplete, error) {
 
 	var min, max int
 
-	for _, w := range words {
-		runes := []rune(w)
-		for _, r := range runes {
-			if min > int(r) {
-				min = int(r)
-			}
-			if max < int(r) {
-				max = int(r)
-			}
+	for _, r := range alphabet {
+		if min > int(r) {
+			min = int(r)
 		}
-
+		if max < int(r) {
+			max = int(r)
+		}
 	}
 
 	if resultSize == 0 {
@@ -89,61 +87,63 @@ func NewAutoCompleteS(words []string, resultSize, radius uint) (AutoComplete, er
 		alphabetSize: max - min + 1,
 		resultSize:   int(resultSize),
 		radius:       int(radius),
+		newWords:     make(map[string]byte),
 	}
 
 	autoComplete.root = &trieNode{
 		links: make([]*trieNode, autoComplete.alphabetSize),
 	}
 
+	var nAc AutoComplete
 	for _, w := range words {
-		autoComplete.put(w)
+		err := autoComplete.put(w)
+		if err != nil {
+			return nAc, err
+		}
 	}
 
 	return autoComplete, nil
 }
 
-func NewAutoCompleteF(fileName string, resultSize, radius uint) (AutoComplete, error) {
+func NewAutoCompleteF(alphabet, fileName string, resultSize, radius uint) (AutoComplete, error) {
+
+	if resultSize == 0 {
+		resultSize = DEF_RESULTS_SIZE
+	}
+	if radius == 0 {
+		radius = DEF_RADIUS
+	}
+
+	var min, max int
+
+	for _, r := range alphabet {
+		if min > int(r) {
+			min = int(r)
+		}
+		if max < int(r) {
+			max = int(r)
+		}
+	}
+
+	autoComplete := AutoComplete{
+		alphabetMin:  min,
+		alphabetMax:  max,
+		alphabetSize: max - min + 1,
+		resultSize:   int(resultSize),
+		radius:       int(radius),
+		newWords:     make(map[string]byte),
+	}
 
 	f, err := os.Open(fileName)
 	defer f.Close()
 
+	var nAc AutoComplete
+
 	if err != nil {
-		return AutoComplete{}, err
+		return nAc, err
 	}
 
 	lineScanner := bufio.NewScanner(f)
-
-	var min, max int
-
-	for lineScanner.Scan() {
-		line := lineScanner.Text()
-		runes := []rune(line)
-		for _, r := range runes {
-			if min > int(r) {
-				min = int(r)
-			}
-			if max < int(r) {
-				max = int(r)
-			}
-		}
-	}
-
-	if resultSize == 0 {
-		resultSize = DEF_RESULTS_SIZE
-	}
-	if radius == 0 {
-		radius = DEF_RADIUS
-	}
-	autoComplete := AutoComplete{
-		alphabetMin:  min,
-		alphabetMax:  max,
-		alphabetSize: max - min + 1,
-		resultSize:   int(resultSize),
-		radius:       int(radius),
-	}
-
-	f.Seek(0, 0)
-	lineScanner = bufio.NewScanner(f)
 
 	autoComplete.root = &trieNode{
 		links: make([]*trieNode, autoComplete.alphabetSize),
@@ -151,25 +151,29 @@ func NewAutoCompleteF(fileName string, resultSize, radius uint) (AutoComplete, e
 
 	for lineScanner.Scan() {
 		line := lineScanner.Text()
-		autoComplete.put(line)
+		err := autoComplete.put(line)
+		if err != nil {
+			return nAc, err
+		}
 	}
 
 	return autoComplete, nil
 }
 
-func (autoComplete *AutoComplete) Accept(acceptedWord string) {
+func (autoComplete *AutoComplete) Accept(acceptedWord string) error {
 	acceptedWordInts, err := autoComplete.runesToInts(acceptedWord)
 	if err != nil {
-		return
+		return err
 	}
 	node := autoComplete.root
 	for _, c := range acceptedWordInts {
 		if node.links[c-autoComplete.alphabetMin] == nil {
-			return
+			return errors.New("Word " + acceptedWord + " not in dictionary")
 		}
 		node = node.links[c-autoComplete.alphabetMin]
 	}
 	node.accepts++
+	return nil
 }
 
 func (autoComplete *AutoComplete) runesToInts(word string) ([]int, error) {
@@ -193,13 +197,18 @@ func (autoComplete *AutoComplete) Learn(word string) error {
 		return err
 	}
 	autoComplete.putIter(conv)
+	autoComplete.newWords[word] = 0
 	return nil
 }
 
-func (autoComplete *AutoComplete) put(word string) {
+func (autoComplete *AutoComplete) put(word string) error {
 
-	conv, _ := autoComplete.runesToInts(word)
+	conv, err := autoComplete.runesToInts(word)
+	if err != nil {
+		return err
+	}
 	autoComplete.putIter(conv)
+	return nil
 }
 
 func (autoComplete *AutoComplete) putIter(intVals []int) {
@@ -233,6 +242,7 @@ func (autoComplete *AutoComplete) UnLearn(word string) error {
 		return err
 	}
 	autoComplete.remove(conv)
+	delete(autoComplete.newWords, word)
 	return nil
 }
 
@@ -316,7 +326,7 @@ func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string
 
 		nodeBranch := fifo.remove()
 		if nodeBranch.node.isWord {
-			words.insert(string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune))), nodeBranch.node.accepts)
+			words.insert(string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune+autoComplete.alphabetMin))), nodeBranch.node.accepts)
 			results++
 		}
 		links := nodeBranch.node.links
@@ -433,4 +443,55 @@ func (lifo *lIFO) pop() *trieNode {
 }
 func (lifo *lIFO) size() int {
 	return len(lifo.slice)
+}
+
+func (autoComplete *AutoComplete) Save(fileName string) error {
+
+	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+
+	if err != nil {
+		return err
+	}
+
+	if err := f.Close(); err != nil {
+		return err
+	}
+
+	eRunes := []rune{}
+
+	fifo := fIFO{}
+	fifo.add(branch{
+		node:   autoComplete.root,
+		parent: &eRunes,
+	})
+	for fifo.size() > 0 {
+
+		nodeBranch := fifo.remove()
+		if nodeBranch.node.isWord {
+			currWord := string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune+autoComplete.alphabetMin)))
+			if nodeBranch.node.accepts > 0 {
+				// save word/ accept combo
+			} else if _, exists := autoComplete.newWords[currWord]; exists {
+				// save
+			}
+		}
+		links := nodeBranch.node.links
+
+		parentString := make([]rune, len(*nodeBranch.parent)+1)
+		copy(parentString, *nodeBranch.parent)
+		parentString[len(parentString)-1] = rune(nodeBranch.node.intRune)
+
+		for _, link := range links {
+			if link != nil {
+				rightBranch := branch{
+					node:   link,
+					parent: &parentString,
+				}
+				fifo.add(rightBranch)
+			}
+		}
+
+	}
+
+	return nil
 }
