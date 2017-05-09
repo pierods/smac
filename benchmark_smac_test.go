@@ -8,7 +8,7 @@ import (
 func init() {
 	goPath := os.Getenv("GOPATH")
 
-	wordFile := goPath + "/src/github.com/pierods/smac/allwords.txt"
+	wordFile := goPath + "/src/github.com/pierods/smac/demo/allwords.txt"
 
 	benchAlphabet := "abcdefghijklmnopqrstuvwxyz1234567890'/&\""
 	autoComplete, err := NewAutoCompleteF(benchAlphabet, wordFile, 0, 0)

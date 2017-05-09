@@ -2,9 +2,11 @@ package smac
 
 import (
 	"encoding/gob"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -360,13 +362,29 @@ func Test_Learn(t *testing.T) {
 		t.Log("Should be able to unlearn a branch", checkMark)
 		autoComplete.UnLearn("ddd")
 		ac, _ = autoComplete.Complete("ddd")
-		for i, link := range autoComplete.root.links {
+		for _, link := range autoComplete.root.links {
 			if link != nil {
-				t.Log(i)
 				t.Fatal("Should be able to unlearn whole tree", ballotX)
 			}
 		}
 		t.Log("Should be able to unlearn whole tree", checkMark)
+		removed := []string{}
+
+		for w, _ := range autoComplete.removedWords {
+			removed = append(removed, w)
+		}
+		sort.Strings(removed)
+		sort.Strings(words)
+		if !reflect.DeepEqual(removed, words) {
+			t.Fatal("Should be able to correctly manage the removed word list", ballotX)
+		}
+		t.Log("Should be able to correctly manage the removed word list", checkMark)
+		autoComplete.Learn("whatever")
+		autoComplete.UnLearn("whatever")
+		if !reflect.DeepEqual(removed, words) {
+			t.Fatal("Should be able to correctly manage the removed word list for new words", ballotX)
+		}
+		t.Log("Should be able to correctly manage the removed word list for new words", checkMark)
 	}
 }
 func Test_Accept(t *testing.T) {
@@ -409,7 +427,6 @@ func Test_ResultSizeAndRadius(t *testing.T) {
 		words := []string{"1234", "12345", "123456", "1234567", "12345678"}
 		autoComplete, _ := NewAutoCompleteS(numAlphabet, words, 10, 4)
 		ac, _ := autoComplete.Complete("1234")
-		t.Log(ac)
 		if !reflect.DeepEqual(ac, []string{"1234"}) {
 			t.Fatal("Should be able to limit radius", ballotX)
 		}
@@ -417,7 +434,7 @@ func Test_ResultSizeAndRadius(t *testing.T) {
 	}
 }
 
-func Test_Save(t *testing.T) {
+func Test_SaveRetrieve(t *testing.T) {
 
 	tempDir := os.TempDir()
 	tempFile, err := ioutil.TempFile(tempDir, "smac")
@@ -431,8 +448,7 @@ func Test_Save(t *testing.T) {
 	autoComplete.Learn("ddd")
 	autoComplete.Learn("eee")
 	autoComplete.Accept("eee")
-	x, _ := autoComplete.Complete("aaa")
-	t.Log(x)
+	autoComplete.UnLearn("ccc")
 
 	t.Log("Given the need to test the save/retrieve feature")
 	{
@@ -444,7 +460,6 @@ func Test_Save(t *testing.T) {
 		t.Log("Should be able to save words to a file", checkMark)
 
 		f, err := os.Open(fName)
-
 		defer f.Close()
 		if err != nil {
 			t.Fatal(err)
@@ -492,13 +507,35 @@ func Test_Save(t *testing.T) {
 		}
 		ac, _ := autoComplete.Complete("aaa")
 		if !reflect.DeepEqual(ac, []string{"aaabbb", "aaa"}) {
-			t.Fatal("Should be able to retrieve an accepted word", ballotX)
+			t.Fatal("Should be able to get back from retrieve an accepted word", ballotX)
 		}
-		t.Log("Should be able to retrieve an accepted word", checkMark)
+		t.Log("Should be able to get back from retrieve an accepted word", checkMark)
 		ac, _ = autoComplete.Complete("ddd")
 		if !reflect.DeepEqual(ac, []string{"ddd"}) {
-			t.Fatal("Should be able to retrieve a learned word", ballotX)
+			t.Fatal("Should be able to get back from retrieve a learned word", ballotX)
 		}
-		t.Log("Should be able to retrieve a learned word", checkMark)
+		t.Log("Should be able to get back from retrieve a learned word", checkMark)
+		ac, _ = autoComplete.Complete("ccc")
+		if !reflect.DeepEqual(ac, []string{}) {
+			t.Fatal("Should be able to erase from retrieve a deleted word", ballotX)
+		}
+		t.Log("Should be able to erase from retrieve a deleted word", checkMark)
 	}
+}
+
+func Example_test() {
+
+	myAlphabet := "abcdefghijklmnopqrstuvwxyz"
+	words := []string{"chair", "chairman", "chairperson", "chairwoman"}
+	autoComplete, err := NewAutoCompleteS(myAlphabet, words, 0, 0)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	completes, err := autoComplete.Complete("chair")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(completes)
 }
