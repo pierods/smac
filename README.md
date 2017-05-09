@@ -17,7 +17,7 @@ Paging is not supported, since it is mostly responsibility of the client.
 
 SMAC learns new words on the go, via the Learn() function, can UnLearn() them and can also UnLearn() words provided in the bootstrap dictionary, and keeps into account the frequency of acceptance of words (frequently used words) by giving them priority when generating completion lists.
 
-If customizations of the autocompleter are to survive re-instantiations, or they must be transferred somewhere else, SMAC can Save() what it has learnt to file and can subsequently Retrieve() them from file.
+If customizations of the autocompleter (learnt words etc.) are to survive re-instantiations, or they must be transferred somewhere else, SMAC can Save() what it has learnt to file and can subsequently Retrieve() them from file.
 
 SMAC has not been tested on logographic alphabets, for which it would not make much sense, unless 
 an ortographic spelling is provided (hiragana to kanji for example). If there is such a need SMAC 

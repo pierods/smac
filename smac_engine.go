@@ -79,14 +79,14 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, e
 
 // NewAutoCompleteS returns a new autocompleter for a given alphabet (set of runes).
 //
-// words is a slice of words to be used for completion.
+// dictionary is a slice of words to be used for completion.
 //
 // resultSize is the number of hits returned. If 0 is used, it defaults to DEF_RESULTS_SIZE
 //
 // radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
 //
 // New words can be added to it by using the Learn() function
-func NewAutoCompleteS(alphabet string, words []string, resultSize, radius uint) (AutoComplete, error) {
+func NewAutoCompleteS(alphabet string, dictionary []string, resultSize, radius uint) (AutoComplete, error) {
 
 	var nAc AutoComplete
 
@@ -115,7 +115,7 @@ func NewAutoCompleteS(alphabet string, words []string, resultSize, radius uint) 
 		links: make([]*trieNode, autoComplete.alphabetSize),
 	}
 
-	for _, w := range words {
+	for _, w := range dictionary {
 		err := autoComplete.put(w)
 		if err != nil {
 			return nAc, err
@@ -154,14 +154,14 @@ func minMax(runes []rune) (rune, rune) {
 
 // NewAutoCompleteF returns a new autocompleter for a given alphabet (set of runes).
 //
-// fileName is the name of a dictionary file (a file containing words) to be used for completion.
+// dictionaryFileName is the name of a dictionary file (a file containing words) to be used for completion.
 //
 // resultSize is the number of hits returned. If 0 is used, it defaults to DEF_RESULTS_SIZE
 //
 // radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
 //
 // New words can be added to it by using the Learn() function
-func NewAutoCompleteF(alphabet, fileName string, resultSize, radius uint) (AutoComplete, error) {
+func NewAutoCompleteF(alphabet, dictionaryFileName string, resultSize, radius uint) (AutoComplete, error) {
 
 	var nAc AutoComplete
 	if len(alphabet) == 0 {
@@ -186,7 +186,7 @@ func NewAutoCompleteF(alphabet, fileName string, resultSize, radius uint) (AutoC
 		removedWords: make(map[string]byte),
 	}
 
-	f, err := os.Open(fileName)
+	f, err := os.Open(dictionaryFileName)
 	defer f.Close()
 
 	if err != nil {
