@@ -2,8 +2,9 @@ package smac
 
 import (
 	"bufio"
+	"encoding/gob"
 	"errors"
-	"fmt"
+	"io"
 	"os"
 )
 
@@ -462,6 +463,8 @@ func (autoComplete *AutoComplete) Save(fileName string) error {
 		return err
 	}
 
+	enc := gob.NewEncoder(f)
+
 	fifo := fIFO{}
 	var nSlice []rune
 
@@ -475,11 +478,17 @@ func (autoComplete *AutoComplete) Save(fileName string) error {
 		nodeBranch := fifo.remove()
 		if nodeBranch.node.isWord {
 			currWord := string(append(*nodeBranch.parent, rune(nodeBranch.node.intRune)))
-			fmt.Println([]rune(currWord))
 			if nodeBranch.node.accepts > 0 {
-				fmt.Println("accepts > 0", currWord)
+				enc.Encode(wordAccepts{
+					currWord,
+					nodeBranch.node.accepts,
+				})
+
 			} else if _, exists := autoComplete.newWords[currWord]; exists {
-				fmt.Println("new word:", currWord)
+				enc.Encode(wordAccepts{
+					currWord,
+					nodeBranch.node.accepts,
+				})
 			}
 		}
 		links := nodeBranch.node.links
@@ -504,8 +513,67 @@ func (autoComplete *AutoComplete) Save(fileName string) error {
 				fifo.add(rightBranch)
 			}
 		}
+	}
+	return f.Close()
+}
 
+type wordAccepts struct {
+	Word    string
+	Accepts int
+}
+
+func (autoComplete *AutoComplete) Retrieve(fileName string) error {
+
+	f, err := os.Open(fileName)
+	defer f.Close()
+	if err != nil {
+		return err
 	}
 
-	return f.Close()
+	dec := gob.NewDecoder(f)
+	for {
+		var wA wordAccepts
+		if err = dec.Decode(&wA); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		// process wA
+		runesAsInts, err := autoComplete.runesToInts(wA.Word)
+		if err != nil {
+			return err
+		}
+		node := autoComplete.root
+		for _, c := range runesAsInts {
+			if node.links[c-autoComplete.alphabetMin] == nil {
+				err = autoComplete.Learn(wA.Word)
+				if err != nil {
+					return err
+				}
+				if wA.Accepts > 0 {
+					if err = autoComplete.updateAccepts(runesAsInts, wA.Accepts); err != nil {
+						return err
+					}
+				}
+			}
+			node = node.links[c-autoComplete.alphabetMin]
+		}
+		node.accepts++
+	}
+
+	return nil
+}
+
+func (autoComplete *AutoComplete) updateAccepts(word []int, accepts int) error {
+
+	node := autoComplete.root
+
+	for _, c := range word {
+		if node.links[c-autoComplete.alphabetMin] == nil {
+			return errors.New("Word not found")
+		}
+		node = node.links[c-autoComplete.alphabetMin]
+	}
+	node.accepts = accepts
+	return nil
 }

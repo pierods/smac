@@ -1,6 +1,7 @@
 package smac
 
 import (
+	"encoding/gob"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -423,11 +424,81 @@ func Test_Save(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	words := []string{"aaa", "bbb", "ccc"}
+	fName := tempFile.Name()
+	words := []string{"aaa", "aaabbb", "bbb", "ccc"}
 	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+	autoComplete.Accept("aaabbb")
 	autoComplete.Learn("ddd")
-	t.Log(tempFile.Name())
-	autoComplete.Save(tempFile.Name())
+	autoComplete.Learn("eee")
+	autoComplete.Accept("eee")
+	x, _ := autoComplete.Complete("aaa")
+	t.Log(x)
 
+	t.Log("Given the need to test the save/retrieve feature")
+	{
+		err = autoComplete.Save(tempFile.Name())
+
+		if err != nil {
+			t.Fatal("Should be able to save words to a file", ballotX)
+		}
+		t.Log("Should be able to save words to a file", checkMark)
+
+		f, err := os.Open(fName)
+
+		defer f.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		dec := gob.NewDecoder(f)
+
+		var wA wordAccepts
+		dec.Decode(&wA)
+
+		result1 := wordAccepts{
+			"ddd",
+			0,
+		}
+		if !reflect.DeepEqual(wA, result1) {
+			t.Fatal("Should be able to read back a saved word", ballotX)
+		}
+		t.Log("Should be able to read back a saved word", checkMark)
+
+		result2 := wordAccepts{
+			"eee",
+			1,
+		}
+		var wA2 wordAccepts
+		dec.Decode(&wA2)
+		if !reflect.DeepEqual(wA2, result2) {
+			t.Fatal("Should be able to read back a saved and accepted word", ballotX)
+		}
+		t.Log("Should be able to read back a saved and accepted word", checkMark)
+
+		result3 := wordAccepts{
+			"aaabbb",
+			1,
+		}
+		var wA3 wordAccepts
+		dec.Decode(&wA3)
+		if !reflect.DeepEqual(wA3, result3) {
+			t.Fatal("Should be able to read back a second saved word", ballotX)
+		}
+		t.Log("Should be able to read back a second saved word", checkMark)
+
+		autoComplete, _ = NewAutoCompleteS(alphabet, words, 0, 0)
+		err = autoComplete.Retrieve(fName)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ac, _ := autoComplete.Complete("aaa")
+		if !reflect.DeepEqual(ac, []string{"aaabbb", "aaa"}) {
+			t.Fatal("Should be able to retrieve an accepted word", ballotX)
+		}
+		t.Log("Should be able to retrieve an accepted word", checkMark)
+		ac, _ = autoComplete.Complete("ddd")
+		if !reflect.DeepEqual(ac, []string{"ddd"}) {
+			t.Fatal("Should be able to retrieve a learned word", ballotX)
+		}
+		t.Log("Should be able to retrieve a learned word", checkMark)
+	}
 }
