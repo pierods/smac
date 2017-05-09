@@ -257,6 +257,31 @@ func Test_TrieConstruction(t *testing.T) {
 		}
 		t.Log("Should be able to insert a word in tree", checkMark)
 	}
+	t.Log("Given the need to test a non-ASCII alphabet")
+	{
+		rAlphabet := "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+		words = []string{"абзац"}
+		autoComplete, err := NewAutoCompleteS(rAlphabet, words, 0, 0)
+		if err != nil {
+			t.Fatal("Should be able to instantiate an autcomplete on a non-ASCII alphabet", ballotX)
+		}
+		t.Log("Should be able to instantiate an autcomplete on a non-ASCII alphabet", checkMark)
+		russianA := autoComplete.root.links[0]
+		if russianA == nil {
+			t.Fatal("Should be able to insert first character of a non-ASCII word in tree", ballotX)
+		}
+		if russianA.intRune != 1072 {
+			t.Fatal("Should be able to insert first character of a non-ASCII word in tree", ballotX)
+		}
+		completes, err := autoComplete.Complete("абзац")
+		if err != nil {
+			t.Fatal("Should be able to complete on a non-ASCII word", ballotX)
+		}
+		if !reflect.DeepEqual(completes, []string{"абзац"}) {
+			t.Fatal("Should be able to complete on a non-ASCII word", ballotX)
+		}
+		t.Log("Should be able to complete on a non-ASCII word", checkMark)
+	}
 }
 
 func Test_Completion(t *testing.T) {
