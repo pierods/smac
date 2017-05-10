@@ -1,7 +1,6 @@
 // Copyright Piero de Salvia.
 // All Rights Reserved
 
-// SMAC is a small autocompleter with an emphasis on simplicity and performance.
 package smac
 
 import (
@@ -12,13 +11,6 @@ import (
 	"os"
 )
 
-// The default result size (number of hits for a given stem) and radius (max lenght of words the autocompleter will
-// descend to while searching)
-const (
-	DEF_RESULTS_SIZE = 10
-	DEF_RADIUS       = 15
-)
-
 type trieNode struct {
 	isWord  bool
 	intRune int
@@ -27,7 +19,7 @@ type trieNode struct {
 }
 
 // Autocomplete represents the autocomplete engine.
-type AutoComplete struct {
+type AutoCompleteTrie struct {
 	root         *trieNode
 	alphabetMin  int
 	alphabetMax  int
@@ -46,9 +38,9 @@ type AutoComplete struct {
 //
 // The returned completer does not contain any words to be completed. New words can be added to it by using the Learn()
 // function
-func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, error) {
+func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoCompleteTrie, error) {
 
-	var nAc AutoComplete
+	var nAc AutoCompleteTrie
 	if len(alphabet) == 0 {
 		return nAc, errors.New("Empty alphabet")
 	}
@@ -61,7 +53,7 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, e
 		radius = DEF_RADIUS
 	}
 
-	autoComplete := AutoComplete{
+	autoComplete := AutoCompleteTrie{
 		alphabetMin:  int(min),
 		alphabetMax:  int(max),
 		alphabetSize: int(max) - int(min) + 1,
@@ -86,9 +78,9 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoComplete, e
 // radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
 //
 // New words can be added to it by using the Learn() function
-func NewAutoCompleteS(alphabet string, dictionary []string, resultSize, radius uint) (AutoComplete, error) {
+func NewAutoCompleteS(alphabet string, dictionary []string, resultSize, radius uint) (AutoCompleteTrie, error) {
 
-	var nAc AutoComplete
+	var nAc AutoCompleteTrie
 
 	if len(alphabet) == 0 {
 		return nAc, errors.New("Empty alphabet")
@@ -101,7 +93,7 @@ func NewAutoCompleteS(alphabet string, dictionary []string, resultSize, radius u
 	if radius == 0 {
 		radius = DEF_RADIUS
 	}
-	autoComplete := AutoComplete{
+	autoComplete := AutoCompleteTrie{
 		alphabetMin:  int(min),
 		alphabetMax:  int(max),
 		alphabetSize: int(max) - int(min) + 1,
@@ -161,9 +153,9 @@ func minMax(runes []rune) (rune, rune) {
 // radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
 //
 // New words can be added to it by using the Learn() function
-func NewAutoCompleteF(alphabet, dictionaryFileName string, resultSize, radius uint) (AutoComplete, error) {
+func NewAutoCompleteF(alphabet, dictionaryFileName string, resultSize, radius uint) (AutoCompleteTrie, error) {
 
-	var nAc AutoComplete
+	var nAc AutoCompleteTrie
 	if len(alphabet) == 0 {
 		return nAc, errors.New("Empty alphabet")
 	}
@@ -176,7 +168,7 @@ func NewAutoCompleteF(alphabet, dictionaryFileName string, resultSize, radius ui
 		radius = DEF_RADIUS
 	}
 
-	autoComplete := AutoComplete{
+	autoComplete := AutoCompleteTrie{
 		alphabetMin:  int(min),
 		alphabetMax:  int(max),
 		alphabetSize: int(max) - int(min) + 1,
@@ -210,11 +202,7 @@ func NewAutoCompleteF(alphabet, dictionaryFileName string, resultSize, radius ui
 	return autoComplete, nil
 }
 
-// Accept will consider a word as accepted, i.e. as a completion that has been picked for completion. Every time Accept is called
-// for a given word, its accept count will increase, increasing the priority it will be given when the completion list is created by
-// complete (it will appear before other possible completions). Accept should be called every time a word is accepted for completion,
-// so to make its autocompleter smarter.
-func (autoComplete *AutoComplete) Accept(acceptedWord string) error {
+func (autoComplete *AutoCompleteTrie) Accept(acceptedWord string) error {
 	acceptedWordInts, err := autoComplete.runesToInts(acceptedWord)
 	if err != nil {
 		return err
@@ -230,7 +218,7 @@ func (autoComplete *AutoComplete) Accept(acceptedWord string) error {
 	return nil
 }
 
-func (autoComplete *AutoComplete) runesToInts(word string) ([]int, error) {
+func (autoComplete *AutoCompleteTrie) runesToInts(word string) ([]int, error) {
 	runes := []rune(word)
 	var conv []int
 
@@ -245,9 +233,7 @@ func (autoComplete *AutoComplete) runesToInts(word string) ([]int, error) {
 	return conv, nil
 }
 
-// Learn will add a word to an autocompleter. If the word is also accepted for completion, Accept should also be called
-// on the same word
-func (autoComplete *AutoComplete) Learn(word string) error {
+func (autoComplete *AutoCompleteTrie) Learn(word string) error {
 	conv, err := autoComplete.runesToInts(word)
 	if err != nil {
 		return err
@@ -257,7 +243,7 @@ func (autoComplete *AutoComplete) Learn(word string) error {
 	return nil
 }
 
-func (autoComplete *AutoComplete) put(word string) error {
+func (autoComplete *AutoCompleteTrie) put(word string) error {
 
 	conv, err := autoComplete.runesToInts(word)
 	if err != nil {
@@ -267,7 +253,7 @@ func (autoComplete *AutoComplete) put(word string) error {
 	return nil
 }
 
-func (autoComplete *AutoComplete) putIter(intVals []int) {
+func (autoComplete *AutoCompleteTrie) putIter(intVals []int) {
 
 	node := autoComplete.root
 
@@ -293,7 +279,7 @@ func (autoComplete *AutoComplete) putIter(intVals []int) {
 }
 
 // UnLearn will remove a word from an autocompleter.
-func (autoComplete *AutoComplete) UnLearn(word string) error {
+func (autoComplete *AutoCompleteTrie) UnLearn(word string) error {
 	conv, err := autoComplete.runesToInts(word)
 	if err != nil {
 		return err
@@ -308,7 +294,7 @@ func (autoComplete *AutoComplete) UnLearn(word string) error {
 	return nil
 }
 
-func (autoComplete *AutoComplete) remove(intVals []int) {
+func (autoComplete *AutoCompleteTrie) remove(intVals []int) {
 	node := autoComplete.root
 	lifo := lIFO{}
 
@@ -357,7 +343,7 @@ func (autoComplete *AutoComplete) remove(intVals []int) {
 // constructing autoComplete, and the max length of matches depends on the value of the radius parameter used.
 // Matches are returned by default in order of length first and alpabetical second. The exceptions are words that were previously accepted as completions
 // (frequently used words) which bubble up to the top of the list, in order of frequency first and alphabetical second.
-func (autoComplete *AutoComplete) Complete(word string) ([]string, error) {
+func (autoComplete *AutoCompleteTrie) Complete(word string) ([]string, error) {
 
 	ints, err := autoComplete.runesToInts(word)
 	if err != nil {
@@ -366,7 +352,7 @@ func (autoComplete *AutoComplete) Complete(word string) ([]string, error) {
 	return autoComplete.complete(word, ints), nil
 }
 
-func (autoComplete *AutoComplete) complete(word string, intRunes []int) []string {
+func (autoComplete *AutoCompleteTrie) complete(word string, intRunes []int) []string {
 
 	wordEnd := autoComplete.root
 	for _, c := range intRunes {
@@ -513,7 +499,7 @@ func (lifo *lIFO) size() int {
 
 // Save will save to file everything an autocompleter has learnt, which is, new words, removed words and word accepts.
 // It is up to the client to decide when to call Save (possibly just before shutdown).
-func (autoComplete *AutoComplete) Save(fileName string) error {
+func (autoComplete *AutoCompleteTrie) Save(fileName string) error {
 
 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 	if err != nil {
@@ -587,7 +573,7 @@ type wordAccepts struct {
 
 // Retrieve will re-teach an autocompleter that has just been created all the learnt words, deleted words and accepted words.
 // It is up to the client to decide when to call Retrieve (possibly just after initialization)
-func (autoComplete *AutoComplete) Retrieve(fileName string) error {
+func (autoComplete *AutoCompleteTrie) Retrieve(fileName string) error {
 
 	f, err := os.Open(fileName)
 	defer f.Close()
@@ -630,7 +616,7 @@ func (autoComplete *AutoComplete) Retrieve(fileName string) error {
 	return nil
 }
 
-func (autoComplete *AutoComplete) updateAccepts(word []int, accepts int) error {
+func (autoComplete *AutoCompleteTrie) updateAccepts(word []int, accepts int) error {
 
 	node := autoComplete.root
 

@@ -187,7 +187,6 @@ func Test_LIFO(t *testing.T) {
 func Test_RunesToInts(t *testing.T) {
 
 	words := []string{"aaa", "aaaa", "aaab", "aaac"}
-
 	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 
 	t.Log("Given the need to test the runesToInts() function")

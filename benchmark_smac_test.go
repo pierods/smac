@@ -15,7 +15,7 @@ func init() {
 	if err != nil {
 		os.Exit(-1)
 	}
-	Ac = autoComplete
+	Ac = &autoComplete
 }
 
 var Ac AutoComplete
