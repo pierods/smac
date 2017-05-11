@@ -15,14 +15,14 @@ func init() {
 	if err != nil {
 		os.Exit(-1)
 	}
-	Ac = &autoComplete
+	AcTrie = autoComplete
 }
 
-var Ac AutoComplete
+var AcTrie AutoCompleteTrie
 
-func BenchmarkComplete(b *testing.B) {
+func BenchmarkCompleteTrie(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
-		Ac.Complete("chair")
+		AcTrie.Complete("chair")
 	}
 }
