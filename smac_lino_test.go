@@ -74,5 +74,22 @@ func Test_LinoConstruction(t *testing.T) {
 	{
 
 		words := []string{"aaaa", "aabc", "abc", "bbb", "v", "vvv", "vvvaaa"}
+		autoComplete, _ := NewAutoCompleteLinoS(words, 0, 0, 0)
+
+		for i, word := range words[:len(words)-1] {
+			nextWord := autoComplete.wordMap[word].next
+			if nextWord != words[i+1] {
+				t.Fatal("Should be able to build a linked list of dictionary words", ballotX)
+			}
+		}
+		t.Log("Should be able to build a linked list of dictionary words", checkMark)
+		if autoComplete.head != "aaaa" {
+			t.Fatal("Should be able to correctly initialize the head of an autocompleter", ballotX)
+		}
+		t.Log("Should be able to correctly initialize the head of an autocompleter", checkMark)
+		if autoComplete.tail != "vvvaaa" {
+			t.Fatal("Should be able to correctly initialize the tail of an autocompleter", ballotX)
+		}
+		t.Log("Should be able to correctly initialize the tail of an autocompleter", checkMark)
 	}
 }
