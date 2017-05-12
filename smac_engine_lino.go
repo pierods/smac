@@ -2,7 +2,9 @@ package smac
 
 import (
 	"bufio"
+	"encoding/gob"
 	"errors"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -25,22 +27,13 @@ type AutoCompleteLiNo struct {
 	prefixMapDepth int
 }
 
+func NewAutoCompleteLinoE(prefixMapDepth, resultSize, radius uint) (AutoCompleteLiNo, error) {
+	return NewAutoCompleteLinoS([]string{}, prefixMapDepth, resultSize, radius)
+}
+
 func NewAutoCompleteLinoF(dictionaryFileName string, prefixMapDepth, resultSize, radius uint) (AutoCompleteLiNo, error) {
 
-	if resultSize == 0 {
-		resultSize = DEF_RESULTS_SIZE
-	}
-	if radius == 0 {
-		radius = DEF_RADIUS
-	}
-
 	var nAc AutoCompleteLiNo
-
-	autoComplete := AutoCompleteLiNo{
-		wordMap:    make(map[string]*liNo),
-		resultSize: int(resultSize),
-		radius:     int(radius),
-	}
 
 	f, err := os.Open(dictionaryFileName)
 	defer f.Close()
@@ -60,25 +53,7 @@ func NewAutoCompleteLinoF(dictionaryFileName string, prefixMapDepth, resultSize,
 		dictionary = append(dictionary, word)
 	}
 
-	sort.Strings(dictionary)
-
-	var linop *liNo
-
-	for _, word := range dictionary {
-		newLinop := &liNo{}
-		autoComplete.wordMap[word] = newLinop
-		if linop != nil {
-			linop.next = word
-		}
-		linop = newLinop
-
-	}
-
-	autoComplete.head = dictionary[0]
-	autoComplete.tail = dictionary[len(dictionary)-1]
-	autoComplete.prefixMap = makePrefixMap(dictionary, int(prefixMapDepth))
-	autoComplete.prefixMapDepth = int(prefixMapDepth)
-	return autoComplete, nil
+	return NewAutoCompleteLinoS(dictionary, prefixMapDepth, resultSize, radius)
 }
 
 func makePrefixMap(sortedDictionary []string, maxDepth int) map[string]string {
@@ -107,9 +82,11 @@ func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radiu
 	}
 
 	autoComplete := AutoCompleteLiNo{
-		wordMap:    make(map[string]*liNo),
-		resultSize: int(resultSize),
-		radius:     int(radius),
+		wordMap:      make(map[string]*liNo),
+		resultSize:   int(resultSize),
+		radius:       int(radius),
+		newWords:     make(map[string]bool),
+		removedWords: make(map[string]bool),
 	}
 
 	sort.Strings(dictionary)
@@ -124,7 +101,6 @@ func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radiu
 		linop = newLinop
 
 	}
-
 	autoComplete.head = dictionary[0]
 	autoComplete.tail = dictionary[len(dictionary)-1]
 	autoComplete.prefixMap = makePrefixMap(dictionary, int(prefixMapDepth))
@@ -194,35 +170,13 @@ func (autoComplete *AutoCompleteLiNo) Accept(acceptedWord string) error {
 	return nil
 }
 
-func (autoComplete *AutoCompleteLiNo) UnLearn(word string) error {
-
-	return nil
-}
-
 func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 
 	if _, exists := autoComplete.wordMap[word]; exists {
 		return errors.New("Word already in dictionary")
 	}
 
-	prefix := word[:len(word)-1]
-	searchPtr, prefixExists := autoComplete.prefixMap[prefix]
-	for !prefixExists && len(prefix) > 0 {
-		prefix = prefix[:len(prefix)-1]
-		searchPtr, prefixExists = autoComplete.prefixMap[prefix]
-	}
-	// find the longest prefix present in prefixMap
-	if searchPtr == "" { // prefix not found
-		searchPtr = autoComplete.head
-	}
-
-	prevWord := searchPtr
-
-	for searchPtr != "" && searchPtr < word {
-		prevWord = searchPtr
-		searchPtr = autoComplete.wordMap[searchPtr].next
-	}
-
+	prevWord := autoComplete.findPreviousWord(word)
 	prevLino := autoComplete.wordMap[prevWord]
 
 	newLino := &liNo{}
@@ -238,7 +192,7 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 	}
 
 	for i := 0; i < autoComplete.prefixMapDepth; i++ {
-		prefix = word[:i]
+		prefix := word[:i]
 		if _, exists := autoComplete.prefixMap[prefix]; !exists {
 			autoComplete.prefixMap[prefix] = word
 		} else {
@@ -247,14 +201,124 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 			}
 		}
 	}
-	//autoComplete.newWords
+	autoComplete.newWords[word] = true
 	return nil
+}
+
+func (autoComplete *AutoCompleteLiNo) UnLearn(word string) error {
+
+	if _, exists := autoComplete.wordMap[word]; exists {
+		return errors.New("Word not in dictionary")
+	}
+
+	prevWord := autoComplete.findPreviousWord(word)
+	var nextWord string
+
+	if prevWord != "" {
+		prevLino := autoComplete.wordMap[prevWord]
+		nextWord = autoComplete.wordMap[word].next
+		prevLino.next = nextWord
+		delete(autoComplete.wordMap, word)
+	}
+
+	for i := 0; i < autoComplete.prefixMapDepth; i++ {
+		prefix := word[:i]
+		if _, exists := autoComplete.prefixMap[prefix]; exists { // if subword was an assigned prefix
+			// was it assigned to this word?
+			// no - we don't care
+			// yes - we must reassign, if prefix still exists
+			if autoComplete.prefixMap[prefix] == word {
+				// does next word start with prefix? if yes, assign, otherwise prefix is gone
+				if strings.HasPrefix(nextWord, prefix) {
+					autoComplete.prefixMap[prefix] = nextWord
+				}
+			}
+		}
+	}
+	if autoComplete.head == word {
+		autoComplete.head = prevWord
+	}
+	if autoComplete.tail == word {
+		autoComplete.tail = prevWord
+	}
+	autoComplete.removedWords[word] = true
+	return nil
+}
+
+func (autoComplete *AutoCompleteLiNo) findPreviousWord(word string) string {
+
+	prefix := word[:len(word)-1]
+	searchPtr, prefixExists := autoComplete.prefixMap[prefix]
+	for !prefixExists && len(prefix) > 0 {
+		prefix = prefix[:len(prefix)-1]
+		searchPtr, prefixExists = autoComplete.prefixMap[prefix]
+	}
+	// find the longest prefix present in prefixMap
+	if searchPtr == "" { // prefix not found
+		searchPtr = autoComplete.head
+	}
+	prevWord := searchPtr
+	// now scan from longest prefix ptr until next word in dictionary is found
+	for searchPtr != "" && searchPtr < word {
+		prevWord = searchPtr
+		searchPtr = autoComplete.wordMap[searchPtr].next
+	}
+
+	return prevWord
 }
 
 func (autoComplete *AutoCompleteLiNo) Save(fileName string) error {
-	return nil
+
+	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+
+	enc := gob.NewEncoder(f)
+
+	for w, liNo := range autoComplete.wordMap {
+		enc.Encode(wordAccepts{
+			w,
+			liNo.accepts,
+		})
+	}
+
+	for w, _ := range autoComplete.removedWords {
+		enc.Encode(wordAccepts{
+			w,
+			-1,
+		})
+	}
+	return f.Close()
 }
 
 func (autoComplete *AutoCompleteLiNo) Retrieve(fileName string) error {
+	f, err := os.Open(fileName)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+
+	dec := gob.NewDecoder(f)
+	for {
+		var wA wordAccepts
+		if err = dec.Decode(&wA); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		if _, exists := autoComplete.wordMap[wA.Word]; !exists {
+			err = autoComplete.Learn(wA.Word)
+			if err != nil {
+				return err
+			}
+		}
+		if wA.Accepts > 0 {
+			l := autoComplete.wordMap[wA.Word]
+			l.accepts = wA.Accepts
+		} else if wA.Accepts < 0 {
+			autoComplete.UnLearn(wA.Word)
+		}
+	}
 	return nil
 }

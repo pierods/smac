@@ -1,3 +1,6 @@
+// Copyright Piero de Salvia.
+// All Rights Reserved
+
 package smac
 
 import (
@@ -10,8 +13,6 @@ import (
 	"testing"
 )
 
-const checkMark = "\u2713"
-const ballotX = "\u2717"
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 func Test_SOLILI(t *testing.T) {

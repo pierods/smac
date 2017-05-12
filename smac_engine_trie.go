@@ -251,7 +251,6 @@ func (autoComplete *AutoCompleteTrie) putIter(intVals []int) {
 
 }
 
-// UnLearn will remove a word from an autocompleter.
 func (autoComplete *AutoCompleteTrie) UnLearn(word string) error {
 	conv, err := autoComplete.runesToInts(word)
 	if err != nil {
@@ -470,8 +469,6 @@ func (lifo *lIFO) size() int {
 	return len(lifo.slice)
 }
 
-// Save will save to file everything an autocompleter has learnt, which is, new words, removed words and word accepts.
-// It is up to the client to decide when to call Save (possibly just before shutdown).
 func (autoComplete *AutoCompleteTrie) Save(fileName string) error {
 
 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
@@ -539,13 +536,6 @@ func (autoComplete *AutoCompleteTrie) Save(fileName string) error {
 	return f.Close()
 }
 
-type wordAccepts struct {
-	Word    string
-	Accepts int
-}
-
-// Retrieve will re-teach an autocompleter that has just been created all the learnt words, deleted words and accepted words.
-// It is up to the client to decide when to call Retrieve (possibly just after initialization)
 func (autoComplete *AutoCompleteTrie) Retrieve(fileName string) error {
 
 	f, err := os.Open(fileName)
@@ -568,7 +558,6 @@ func (autoComplete *AutoCompleteTrie) Retrieve(fileName string) error {
 		}
 		node := autoComplete.root
 		for _, c := range runesAsInts {
-			// parola non trovata, da aggiungere
 			if node.links[c-autoComplete.alphabetMin] == nil {
 				err = autoComplete.Learn(wA.Word)
 				if err != nil {
@@ -601,4 +590,31 @@ func (autoComplete *AutoCompleteTrie) updateAccepts(word []int, accepts int) err
 	}
 	node.accepts = accepts
 	return nil
+}
+
+func minMax(runes []rune) (rune, rune) {
+
+	if len(runes) == 1 {
+		return runes[0], runes[0]
+	}
+
+	var min, max rune
+
+	if runes[0] > runes[1] {
+		max = runes[0]
+		min = runes[1]
+	} else {
+		max = runes[1]
+		min = runes[0]
+	}
+
+	for i := 2; i < len(runes); i++ {
+		if runes[i] > max {
+			max = runes[i]
+		} else if runes[i] < min {
+			min = runes[i]
+		}
+	}
+
+	return min, max
 }
