@@ -161,19 +161,8 @@ func Test_LinoLearnCoherence(t *testing.T) {
 		}
 		t.Log("Should be able to rebuild a linked list of dictionary words", checkMark)
 
-		if autoComplete.head != "aaaa" {
-			t.Fatal("Should be able to correctly initialize the head of an autocompleter", ballotX)
-		}
-		t.Log("Should be able to correctly re-initialize the head of an autocompleter", checkMark)
-		if autoComplete.tail != "vvvaaa" {
-			t.Fatal("Should be able to correctly re-initialize the tail of an autocompleter", ballotX)
-		}
-		t.Log("Should be able to correctly re-initialize the tail of an autocompleter", checkMark)
-
 		prefix2["bb"] = "bba"
 		prefix2["b"] = "bba"
-		t.Log(prefix2)
-		t.Log(autoComplete.prefixMap)
 		if !reflect.DeepEqual(autoComplete.prefixMap, prefix2) {
 			t.Fatal("Should be able to rebuild the prefix map of an autocompleter", ballotX)
 		}
@@ -190,5 +179,47 @@ func Test_LinoLearnCoherence(t *testing.T) {
 		}
 		t.Log("Should be able to rebuild a linked list of dictionary words on a tail word", checkMark)
 
+		if autoComplete.tail != "zzz" {
+			t.Fatal("Should be able to correctly re-initialize the tail of an autocompleter", ballotX)
+		}
+		t.Log("Should be able to correctly re-initialize the tail of an autocompleter", checkMark)
+
+		prefix2["zz"] = "zzz"
+		prefix2["z"] = "zzz"
+		if !reflect.DeepEqual(autoComplete.prefixMap, prefix2) {
+			t.Fatal("Should be able to rebuild the prefix map of an autocompleter on a tail insert", ballotX)
+		}
+		t.Log("Should be able to rebuild the prefix map of an autocompleter on a tail insert", checkMark)
+
+		autoComplete.Learn("a")
+		newWords = append(newWords, "a")
+		sort.Strings(newWords)
+		for i, word := range newWords[:len(newWords)-1] {
+			nextWord := autoComplete.wordMap[word].next
+			if nextWord != newWords[i+1] {
+				t.Fatal("Should be able to rebuild a linked list of dictionary words on a head word", ballotX)
+			}
+		}
+		t.Log("Should be able to rebuild a linked list of dictionary words on a tail word", checkMark)
+		if autoComplete.head != "a" {
+			t.Fatal("Should be able to correctly initialize the head of an autocompleter", ballotX)
+		}
+		t.Log("Should be able to correctly re-initialize the head of an autocompleter", checkMark)
+
+		prefix2["a"] = "a"
+		if !reflect.DeepEqual(autoComplete.prefixMap, prefix2) {
+			t.Fatal("Should be able to rebuild the prefix map of an autocompleter on a head insert", ballotX)
+		}
+		t.Log("Should be able to rebuild the prefix map of an autocompleter on a head insert", checkMark)
+
+	}
+}
+
+func Test_LinoUnLearnCoherence(t *testing.T) {
+
+	initTestVals()
+
+	t.Log("Given the need to test the lino learn coherence")
+	{
 	}
 }

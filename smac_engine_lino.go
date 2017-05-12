@@ -182,8 +182,13 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 
 	newLino := &liNo{}
 	autoComplete.wordMap[word] = newLino
-	newLino.next = prevLino.next
-	prevLino.next = word
+
+	if prevWord != autoComplete.head {
+		newLino.next = prevLino.next
+		prevLino.next = word
+	} else {
+		newLino.next = autoComplete.head
+	}
 
 	if autoComplete.head > word {
 		autoComplete.head = word
@@ -192,8 +197,9 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 		autoComplete.tail = word
 	}
 
-	for i := 0; i < autoComplete.prefixMapDepth; i++ {
+	for i := 1; i <= autoComplete.prefixMapDepth && i <= len(word); i++ {
 		prefix := word[:i]
+		fmt.Println(prefix)
 		if _, exists := autoComplete.prefixMap[prefix]; !exists {
 			autoComplete.prefixMap[prefix] = word
 		} else {
@@ -250,7 +256,7 @@ func (autoComplete *AutoCompleteLiNo) findPreviousWord(word string) string {
 
 	prefix := word[:len(word)-1]
 	searchPtr, prefixExists := autoComplete.prefixMap[prefix]
-	fmt.Println(word, ",", prefix, ",", searchPtr)
+
 	for len(prefix) > 0 && (!prefixExists || word <= searchPtr) {
 		prefix = prefix[:len(prefix)-1]
 		searchPtr, prefixExists = autoComplete.prefixMap[prefix]
