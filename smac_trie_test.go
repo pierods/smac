@@ -15,7 +15,7 @@ import (
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
-func Test_SOLILI(t *testing.T) {
+func Test_TrieSOLILI(t *testing.T) {
 
 	t.Log("Given the need to test a sorted linked list")
 	{
@@ -67,7 +67,7 @@ func Test_SOLILI(t *testing.T) {
 	}
 }
 
-func Test_FIFO(t *testing.T) {
+func Test_TrieFIFO(t *testing.T) {
 
 	var fifo fIFO
 
@@ -132,7 +132,7 @@ func Test_FIFO(t *testing.T) {
 	}
 }
 
-func Test_LIFO(t *testing.T) {
+func Test_TrieLIFO(t *testing.T) {
 
 	var lifo lIFO
 
@@ -185,7 +185,7 @@ func Test_LIFO(t *testing.T) {
 	}
 }
 
-func Test_RunesToInts(t *testing.T) {
+func Test_TrieRunesToInts(t *testing.T) {
 
 	words := []string{"aaa", "aaaa", "aaab", "aaac"}
 	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
@@ -284,7 +284,7 @@ func Test_TrieConstruction(t *testing.T) {
 	}
 }
 
-func Test_Completion(t *testing.T) {
+func Test_TrieCompletion(t *testing.T) {
 
 	words := []string{"aaa", "aaab", "aaac", "aaad", "abbbbb"}
 	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
@@ -310,7 +310,7 @@ func Test_Completion(t *testing.T) {
 	}
 }
 
-func Test_Learn(t *testing.T) {
+func Test_TrieLearn(t *testing.T) {
 	words := []string{"aaa", "b"}
 	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
 	err := autoComplete.Learn("aaabbb")
@@ -412,7 +412,7 @@ func Test_Learn(t *testing.T) {
 		t.Log("Should be able to correctly manage the removed word list for new words", checkMark)
 	}
 }
-func Test_Accept(t *testing.T) {
+func Test_TrieAccept(t *testing.T) {
 	t.Log("Given the need to test the Accept feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"} // Complete() always sorts by length and then alphabetically
@@ -434,7 +434,7 @@ func Test_Accept(t *testing.T) {
 	}
 }
 
-func Test_ResultSizeAndRadius(t *testing.T) {
+func Test_TrieResultSizeAndRadius(t *testing.T) {
 	t.Log("Given the need to test the Result size feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"}
@@ -459,7 +459,7 @@ func Test_ResultSizeAndRadius(t *testing.T) {
 	}
 }
 
-func Test_SaveRetrieve(t *testing.T) {
+func Test_TrieSaveRetrieve(t *testing.T) {
 
 	tempDir := os.TempDir()
 	tempFile, err := ioutil.TempFile(tempDir, "smac")

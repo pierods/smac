@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"sort"
@@ -249,7 +250,8 @@ func (autoComplete *AutoCompleteLiNo) findPreviousWord(word string) string {
 
 	prefix := word[:len(word)-1]
 	searchPtr, prefixExists := autoComplete.prefixMap[prefix]
-	for !prefixExists && len(prefix) > 0 {
+	fmt.Println(word, ",", prefix, ",", searchPtr)
+	for len(prefix) > 0 && (!prefixExists || word <= searchPtr) {
 		prefix = prefix[:len(prefix)-1]
 		searchPtr, prefixExists = autoComplete.prefixMap[prefix]
 	}
