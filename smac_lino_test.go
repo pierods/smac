@@ -1,6 +1,11 @@
 package smac
 
 import (
+	"encoding/gob"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
@@ -219,7 +224,212 @@ func Test_LinoUnLearnCoherence(t *testing.T) {
 
 	initTestVals()
 
-	t.Log("Given the need to test the lino learn coherence")
+	t.Log("Given the need to test the lino un learn coherence")
 	{
+		autoComplete, _ := NewAutoCompleteLinoS(words, 2, 0, 0)
+		autoComplete.UnLearn("aaaa")
+		newWords := []string{"aabc", "abc", "bbb", "v", "vvv", "vvvaaa"}
+		for i, word := range newWords[:len(newWords)-1] {
+			nextWord := autoComplete.wordMap[word].next
+			if nextWord != newWords[i+1] {
+				t.Fatal("Should be able to rebuild a linked list of dictionary words", ballotX)
+			}
+		}
+		t.Log("Should be able to rebuild a linked list of dictionary words", checkMark)
+
+		if autoComplete.head != "aabc" {
+			t.Fatal("Should be able to correctly reassign the head of an autocompleter", ballotX)
+		}
+		t.Log("Should be able to correctly reassign the head of an autocompleter", checkMark)
+		prefix2["aa"] = "aabc"
+		prefix2["a"] = "aabc"
+		if !reflect.DeepEqual(autoComplete.prefixMap, prefix2) {
+			t.Log(autoComplete.prefixMap)
+			t.Fatal("Should be able to rebuild the prefix map of an autocompleter on a head removal", ballotX)
+		}
+		t.Log("Should be able to rebuild the prefix map of an autocompleter on a head removal", checkMark)
+
+		autoComplete.UnLearn("vvvaaa")
+		newWords = []string{"aabc", "abc", "bbb", "v", "vvv"}
+		for i, word := range newWords[:len(newWords)-1] {
+			nextWord := autoComplete.wordMap[word].next
+			if nextWord != newWords[i+1] {
+				t.Fatal("Should be able to rebuild a linked list of dictionary words", ballotX)
+			}
+		}
+		t.Log("Should be able to rebuild a linked list of dictionary words", checkMark)
+
+		if autoComplete.tail != "vvv" {
+			t.Fatal("Should be able to correctly reassign the tail of an autocompleter", ballotX)
+		}
+		t.Log("Should be able to correctly reassign the tail of an autocompleter", checkMark)
+
+		prefix2["vv"] = "vvv"
+		if !reflect.DeepEqual(autoComplete.prefixMap, prefix2) {
+			t.Fatal("Should be able to rebuild the prefix map of an autocompleter on a tail removal", ballotX)
+		}
+		t.Log("Should be able to rebuild the prefix map of an autocompleter on a tail removal", checkMark)
+
+		autoComplete.UnLearn("bbb")
+		newWords = []string{"aabc", "abc", "v", "vvv"}
+		for i, word := range newWords[:len(newWords)-1] {
+			nextWord := autoComplete.wordMap[word].next
+			if nextWord != newWords[i+1] {
+				t.Fatal("Should be able to rebuild a linked list of dictionary words", ballotX)
+			}
+		}
+		t.Log("Should be able to rebuild a linked list of dictionary words", checkMark)
+		delete(prefix2, "b")
+		delete(prefix2, "bb")
+		if !reflect.DeepEqual(autoComplete.prefixMap, prefix2) {
+			t.Log(autoComplete.prefixMap)
+			t.Log(prefix2)
+			t.Fatal("Should be able to rebuild the prefix map of an autocompleter on prefix word removal", ballotX)
+		}
+		t.Log("Should be able to rebuild the prefix map of an autocompleter on prefix word removal", checkMark)
+
+		initTestVals()
+		autoComplete, _ = NewAutoCompleteLinoS(words, 2, 0, 0)
+		autoComplete.UnLearn("aabc")
+
+		newWords = []string{"aaaa", "abc", "bbb", "v", "vvv", "vvvaaa"}
+		for i, word := range newWords[:len(newWords)-1] {
+			nextWord := autoComplete.wordMap[word].next
+			if nextWord != newWords[i+1] {
+				t.Fatal("Should be able to rebuild a linked list of dictionary words", ballotX)
+			}
+		}
+		t.Log("Should be able to rebuild a linked list of dictionary words", checkMark)
+		if !reflect.DeepEqual(autoComplete.prefixMap, prefix2) {
+			t.Fatal("Should be able to maintain prefix map of an autocompleter on a non-prefix word removal", ballotX)
+		}
+		t.Log("Should be able to maintain the prefix map of an autocompleter on a non-prefix word removal", checkMark)
 	}
+}
+
+func Test_LinoSaveAndRetrieve(t *testing.T) {
+	tempDir := os.TempDir()
+	tempFile, err := ioutil.TempFile(tempDir, "smac")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fName := tempFile.Name()
+
+	initTestVals()
+
+	autoComplete, _ := NewAutoCompleteLinoS(words, 2, 0, 0)
+	autoComplete.Accept("aaaa")
+	autoComplete.Learn("ddd")
+	autoComplete.Learn("eee")
+	autoComplete.Accept("eee")
+	autoComplete.UnLearn("vvv")
+
+	t.Log("Given the need to test the save/retrieve feature")
+	{
+		err = autoComplete.Save(tempFile.Name())
+
+		if err != nil {
+			t.Fatal("Should be able to save words to a file", ballotX)
+		}
+		t.Log("Should be able to save words to a file", checkMark)
+
+		f, err := os.Open(fName)
+		defer f.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		dec := gob.NewDecoder(f)
+		readWords := make(map[string]int)
+		for {
+			var wA wordAccepts
+			if err = dec.Decode(&wA); err == io.EOF {
+				break
+			} else if err != nil {
+				t.Fatal("Should be able to read a smac file")
+			}
+			readWords[wA.Word] = wA.Accepts
+		}
+
+		accepts, exists := readWords["aaaa"]
+
+		if !exists {
+			t.Fatal("Should be able to persist an accepted word", ballotX)
+		}
+		t.Log("Should be able to perstist an accepted word", checkMark)
+
+		if accepts != 1 {
+			t.Fatal("Should be able to persist an accepted word", ballotX)
+		}
+		t.Log("Should be able to perstist an accepted word", checkMark)
+
+		accepts, exists = readWords["ddd"]
+
+		if !exists {
+			t.Fatal("Should be able to persist a learnt word", ballotX)
+		}
+		t.Log("Should be able to persist a learnt word", checkMark)
+
+		accepts, exists = readWords["eee"]
+
+		if !exists {
+			t.Fatal("Should be able to persist a learnt word", ballotX)
+		}
+		t.Log("Should be able to persist a learnt word", checkMark)
+
+		if accepts != 1 {
+			t.Fatal("Should be able to persist a learnt and accepted word", ballotX)
+		}
+		t.Log("Should be able to persist a learnt and accepted word", checkMark)
+
+		accepts, exists = readWords["vvv"]
+
+		if !exists {
+			t.Fatal("Should be able to persist an unlearnt word", ballotX)
+		}
+		t.Log("Should be able to persist an unlearnt word", checkMark)
+
+		if accepts != -1 {
+			t.Fatal("Should be able to persist a learnt and accepted word", ballotX)
+		}
+		t.Log("Should be able to persist a learnt and accepted word", checkMark)
+
+		autoComplete, _ = NewAutoCompleteLinoS(words, 2, 0, 0)
+		err = autoComplete.Retrieve(fName)
+		if err != nil {
+			t.Fatal(err)
+		}
+		/*
+			ac, _ := autoComplete.Complete("aaaa")
+			if !reflect.DeepEqual(ac, []string{"aaabbb", "aaa"}) {
+				t.Fatal("Should be able to get back from retrieve an accepted word", ballotX)
+			}
+			t.Log("Should be able to get back from retrieve an accepted word", checkMark)
+			ac, _ = autoComplete.Complete("ddd")
+			if !reflect.DeepEqual(ac, []string{"ddd"}) {
+				t.Fatal("Should be able to get back from retrieve a learned word", ballotX)
+			}
+			t.Log("Should be able to get back from retrieve a learned word", checkMark)
+			ac, _ = autoComplete.Complete("ccc")
+			if !reflect.DeepEqual(ac, []string{}) {
+				t.Fatal("Should be able to erase from retrieve a deleted word", ballotX)
+			}
+			t.Log("Should be able to erase from retrieve a deleted word", checkMark)
+		*/
+	}
+}
+
+func Example_NewAutoCompleteLinoS() {
+
+	words := []string{"chair", "chairman", "chairperson", "chairwoman"}
+	autoComplete, err := NewAutoCompleteLinoS(words, 2, 0, 0)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	completes, err := autoComplete.Complete("chair")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(completes)
 }

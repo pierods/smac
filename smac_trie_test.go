@@ -548,7 +548,7 @@ func Test_TrieSaveRetrieve(t *testing.T) {
 	}
 }
 
-func Example_test() {
+func Example_Trie_test() {
 
 	myAlphabet := "abcdefghijklmnopqrstuvwxyz"
 	words := []string{"chair", "chairman", "chairperson", "chairwoman"}

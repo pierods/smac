@@ -311,10 +311,6 @@ func (autoComplete *AutoCompleteTrie) remove(intVals []int) {
 	}
 }
 
-// Complete returns a slice of words from a stem word. The max number of words returned depends on the value of the resultSize parameter used when
-// constructing autoComplete, and the max length of matches depends on the value of the radius parameter used.
-// Matches are returned by default in order of length first and alpabetical second. The exceptions are words that were previously accepted as completions
-// (frequently used words) which bubble up to the top of the list, in order of frequency first and alphabetical second.
 func (autoComplete *AutoCompleteTrie) Complete(word string) ([]string, error) {
 
 	ints, err := autoComplete.runesToInts(word)

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"sort"
@@ -199,7 +198,7 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 
 	for i := 1; i <= autoComplete.prefixMapDepth && i <= len(word); i++ {
 		prefix := word[:i]
-		fmt.Println(prefix)
+		//fmt.Println(prefix)
 		if _, exists := autoComplete.prefixMap[prefix]; !exists {
 			autoComplete.prefixMap[prefix] = word
 		} else {
@@ -214,41 +213,48 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 
 func (autoComplete *AutoCompleteLiNo) UnLearn(word string) error {
 
-	if _, exists := autoComplete.wordMap[word]; exists {
+	if _, exists := autoComplete.wordMap[word]; !exists {
 		return errors.New("Word not in dictionary")
 	}
 
 	prevWord := autoComplete.findPreviousWord(word)
 	var nextWord string
-
-	if prevWord != "" {
-		prevLino := autoComplete.wordMap[prevWord]
+	prevLino := autoComplete.wordMap[prevWord]
+	if autoComplete.wordMap[word].next == "" {
+		prevLino.next = ""
+	} else {
 		nextWord = autoComplete.wordMap[word].next
 		prevLino.next = nextWord
-		delete(autoComplete.wordMap, word)
 	}
 
-	for i := 0; i < autoComplete.prefixMapDepth; i++ {
+	delete(autoComplete.wordMap, word)
+
+	for i := 1; i <= autoComplete.prefixMapDepth && i < len(word); i++ {
 		prefix := word[:i]
-		if _, exists := autoComplete.prefixMap[prefix]; exists { // if subword was an assigned prefix
-			// was it assigned to this word?
-			// no - we don't care
-			// yes - we must reassign, if prefix still exists
+		if _, exists := autoComplete.prefixMap[prefix]; exists {
 			if autoComplete.prefixMap[prefix] == word {
 				// does next word start with prefix? if yes, assign, otherwise prefix is gone
 				if strings.HasPrefix(nextWord, prefix) {
 					autoComplete.prefixMap[prefix] = nextWord
+				} else {
+					delete(autoComplete.prefixMap, prefix)
 				}
 			}
 		}
 	}
 	if autoComplete.head == word {
-		autoComplete.head = prevWord
+		autoComplete.head = nextWord
 	}
 	if autoComplete.tail == word {
 		autoComplete.tail = prevWord
 	}
-	autoComplete.removedWords[word] = true
+
+	if _, contains := autoComplete.newWords[word]; !contains {
+		autoComplete.removedWords[word] = true
+	} else {
+		delete(autoComplete.newWords, word)
+	}
+
 	return nil
 }
 
@@ -285,10 +291,17 @@ func (autoComplete *AutoCompleteLiNo) Save(fileName string) error {
 	enc := gob.NewEncoder(f)
 
 	for w, liNo := range autoComplete.wordMap {
-		enc.Encode(wordAccepts{
-			w,
-			liNo.accepts,
-		})
+		if liNo.accepts > 0 {
+			enc.Encode(wordAccepts{
+				w,
+				liNo.accepts,
+			})
+		} else if _, exists := autoComplete.newWords[w]; exists {
+			enc.Encode(wordAccepts{
+				w,
+				liNo.accepts,
+			})
+		}
 	}
 
 	for w, _ := range autoComplete.removedWords {
