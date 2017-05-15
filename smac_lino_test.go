@@ -447,6 +447,12 @@ func Test_LinoComplete(t *testing.T) {
 	}
 	t.Log("Should be able to limit completion to radius", checkMark)
 
+	autoComplete, err := NewAutoCompleteLinoS(words, 2, 5, 3)
+	if err == nil {
+		t.Fatal("Should be able to reject resultSize > radius", ballotX)
+	}
+	t.Log("Should be able to reject resultSize > radius", checkMark)
+
 }
 
 func Example_NewAutoCompleteLinoS() {

@@ -77,6 +77,12 @@ func makePrefixMap(sortedDictionary []string, maxDepth int) map[string]string {
 
 func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radius uint) (AutoCompleteLiNo, error) {
 
+	var nAc AutoCompleteLiNo
+
+	if resultSize > radius {
+		return nAc, errors.New("resultSize > radius")
+	}
+
 	if resultSize == 0 {
 		resultSize = DEF_RESULTS_SIZE
 	}
