@@ -1,3 +1,6 @@
+// Copyright Piero de Salvia.
+// All Rights Reserved
+
 package smac
 
 import (
@@ -111,12 +114,14 @@ func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radiu
 
 func (autoComplete *AutoCompleteLiNo) Complete(stem string) ([]string, error) {
 
-	result := []string{}
-
+	result := sOLILI{}
+	hits := 0
+	//radius := 0
 	lino, hit := autoComplete.wordMap[stem]
 
 	if hit {
-		result = append(result, stem)
+		hits++
+		result.insert(stem, lino.accepts)
 	} else {
 		subStem := stem
 		prefixRoot, prefixExists := autoComplete.prefixMap[subStem]
@@ -130,33 +135,28 @@ func (autoComplete *AutoCompleteLiNo) Complete(stem string) ([]string, error) {
 			for !strings.HasPrefix(searchPtr, stem) {
 				searchPtr = autoComplete.wordMap[searchPtr].next
 				if searchPtr == "" || !strings.HasPrefix(searchPtr, subStem) {
-					return result, nil
+					return []string{}, nil
 				}
 			}
 			hit = true
 			lino = autoComplete.wordMap[searchPtr]
 			if _, prefixRootIsWord := autoComplete.wordMap[searchPtr]; prefixRootIsWord {
-				result = append(result, searchPtr)
+				hits++
+				result.insert(searchPtr, lino.accepts)
 			}
 		}
 	}
-	for hit {
+	for hit && hits < autoComplete.radius {
 		word := lino.next
 		hit = strings.HasPrefix(word, stem)
 		if hit {
-			result = append(result, word)
 			lino = autoComplete.wordMap[word]
+			hits++
+			result.insert(word, lino.accepts)
 		}
 	}
-	sort.Sort(byLen(result))
-	return result, nil
+	return result.flushL(autoComplete.resultSize), nil
 }
-
-type byLen []string
-
-func (a byLen) Len() int           { return len(a) }
-func (a byLen) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byLen) Less(i, j int) bool { return len(a[i]) < len(a[j]) }
 
 func (autoComplete *AutoCompleteLiNo) Accept(acceptedWord string) error {
 
@@ -165,7 +165,6 @@ func (autoComplete *AutoCompleteLiNo) Accept(acceptedWord string) error {
 	if lino, exist = autoComplete.wordMap[acceptedWord]; !exist {
 		return errors.New("Word to be accepted not found")
 	}
-
 	lino.accepts++
 	return nil
 }
@@ -198,7 +197,6 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 
 	for i := 1; i <= autoComplete.prefixMapDepth && i <= len(word); i++ {
 		prefix := word[:i]
-		//fmt.Println(prefix)
 		if _, exists := autoComplete.prefixMap[prefix]; !exists {
 			autoComplete.prefixMap[prefix] = word
 		} else {

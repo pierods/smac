@@ -15,58 +15,6 @@ import (
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
-func Test_TrieSOLILI(t *testing.T) {
-
-	t.Log("Given the need to test a sorted linked list")
-	{
-		t.Log("When initializing a solili")
-		{
-			list := sOLILI{}
-			slice := list.flush()
-			if !reflect.DeepEqual(slice, []string{}) {
-				t.Fatal("Should be able to correctly initialize an empty solili", ballotX)
-			}
-			t.Log("Should be able to correctly initialize an empty solili", checkMark)
-			list.insert("aaa", 0)
-			slice = list.flush()
-			if !reflect.DeepEqual(slice, []string{"aaa"}) {
-				t.Fatal("Should be able to correctly add an element to a solili", ballotX)
-			}
-			t.Log("Should be able to correctly add an element to a solili", checkMark)
-			list.insert("bbb", 0)
-			slice = list.flush()
-			if !reflect.DeepEqual(slice, []string{"aaa", "bbb"}) {
-				t.Fatal("Should be able to correctly add an element to the back of a solili", ballotX)
-			}
-			t.Log("Should be able to correctly add an element to the back of a solili", checkMark)
-			list.insert("jjj", 100)
-			slice = list.flush()
-			if !reflect.DeepEqual(slice, []string{"jjj", "aaa", "bbb"}) {
-				t.Fatal("Should be able to correctly add an element to the front of a solili", ballotX)
-			}
-			t.Log("Should be able to correctly add an element to the front of a solili", checkMark)
-			list.insert("kkk", 90)
-			slice = list.flush()
-			if !reflect.DeepEqual(slice, []string{"jjj", "kkk", "aaa", "bbb"}) {
-				t.Fatal("Should be able to correctly add an element in the middle of a solili", ballotX)
-			}
-			t.Log("Should be able to correctly add an element in the middle of a solili", checkMark)
-			list.insert("lll", 100)
-			slice = list.flush()
-			if !reflect.DeepEqual(slice, []string{"jjj", "lll", "kkk", "aaa", "bbb"}) {
-				t.Fatal("Should be able to maintain arrival order for same-weight elements (at head)", ballotX)
-			}
-			t.Log("Should be able to maintain arrival order for same-weight elements (at head)", checkMark)
-			list.insert("mmm", 90)
-			slice = list.flush()
-			if !reflect.DeepEqual(slice, []string{"jjj", "lll", "kkk", "mmm", "aaa", "bbb"}) {
-				t.Fatal("Should be able to maintain arrival order for same-weight elements", ballotX)
-			}
-			t.Log("Should be able to maintain arrival order for same-weight elements", checkMark)
-		}
-	}
-}
-
 func Test_TrieFIFO(t *testing.T) {
 
 	var fifo fIFO

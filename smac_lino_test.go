@@ -1,3 +1,6 @@
+// Copyright Piero de Salvia.
+// All Rights Reserved
+
 package smac
 
 import (
@@ -318,7 +321,7 @@ func Test_LinoSaveAndRetrieve(t *testing.T) {
 	initTestVals()
 
 	autoComplete, _ := NewAutoCompleteLinoS(words, 2, 0, 0)
-	autoComplete.Accept("aaaa")
+	autoComplete.Accept("aabc")
 	autoComplete.Learn("ddd")
 	autoComplete.Learn("eee")
 	autoComplete.Accept("eee")
@@ -350,7 +353,7 @@ func Test_LinoSaveAndRetrieve(t *testing.T) {
 			readWords[wA.Word] = wA.Accepts
 		}
 
-		accepts, exists := readWords["aaaa"]
+		accepts, exists := readWords["aabc"]
 
 		if !exists {
 			t.Fatal("Should be able to persist an accepted word", ballotX)
@@ -398,24 +401,52 @@ func Test_LinoSaveAndRetrieve(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		/*
-			ac, _ := autoComplete.Complete("aaaa")
-			if !reflect.DeepEqual(ac, []string{"aaabbb", "aaa"}) {
-				t.Fatal("Should be able to get back from retrieve an accepted word", ballotX)
-			}
-			t.Log("Should be able to get back from retrieve an accepted word", checkMark)
-			ac, _ = autoComplete.Complete("ddd")
-			if !reflect.DeepEqual(ac, []string{"ddd"}) {
-				t.Fatal("Should be able to get back from retrieve a learned word", ballotX)
-			}
-			t.Log("Should be able to get back from retrieve a learned word", checkMark)
-			ac, _ = autoComplete.Complete("ccc")
-			if !reflect.DeepEqual(ac, []string{}) {
-				t.Fatal("Should be able to erase from retrieve a deleted word", ballotX)
-			}
-			t.Log("Should be able to erase from retrieve a deleted word", checkMark)
-		*/
 	}
+}
+
+func Test_LinoAccept(t *testing.T) {
+
+	initTestVals()
+	autoComplete, _ := NewAutoCompleteLinoS(words, 2, 0, 0)
+	autoComplete.Accept("abc")
+	ac, _ := autoComplete.Complete("a")
+	if !reflect.DeepEqual(ac, []string{"abc", "aaaa", "aabc"}) {
+		fmt.Println(ac)
+		t.Fatal("Should be able to prioritize an accepted word", ballotX)
+	}
+	t.Log("Should be able to prioritize an accepted word", checkMark)
+	autoComplete.Accept("abc")
+	autoComplete.Accept("aaaa")
+	ac, _ = autoComplete.Complete("a")
+	if !reflect.DeepEqual(ac, []string{"abc", "aaaa", "aabc"}) {
+		t.Fatal("Should be able to prioritize priorities", ballotX)
+	}
+	t.Log("Should be able to prioritize priorities", checkMark)
+
+}
+
+func Test_LinoComplete(t *testing.T) {
+	words = []string{"aaa", "aaa1", "aaa2", "aaa3", "aaa4", "aaa5", "aaa6", "aaa7", "bbb"}
+	autoComplete, _ := NewAutoCompleteLinoS(words, 2, 0, 0)
+	ac, _ := autoComplete.Complete("a")
+	if !reflect.DeepEqual(ac, []string{"aaa", "aaa1", "aaa2", "aaa3", "aaa4", "aaa5", "aaa6", "aaa7"}) {
+		t.Fatal("Should be able to correctly complete a prefix", ballotX)
+	}
+	t.Log("Should be able to correctly complete a prefix", checkMark)
+	autoComplete, _ = NewAutoCompleteLinoS(words, 2, 3, 5)
+	ac, _ = autoComplete.Complete("a")
+	if !reflect.DeepEqual(ac, []string{"aaa", "aaa1", "aaa2"}) {
+		t.Fatal("Should be able to limit completion to result size", ballotX)
+	}
+	t.Log("Should be able to limit completion to result size", checkMark)
+	autoComplete.Accept("aaa4")
+	ac, _ = autoComplete.Complete("a")
+	if !reflect.DeepEqual(ac, []string{"aaa4", "aaa", "aaa1"}) {
+		t.Log(ac)
+		t.Fatal("Should be able to extend completion to radius", ballotX)
+	}
+	t.Log("Should be able to limit completion to radius", checkMark)
+
 }
 
 func Example_NewAutoCompleteLinoS() {
