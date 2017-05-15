@@ -97,7 +97,7 @@ ac, err := NewAutoCompleteLinoE(4, 10, 90)
 ```
  **Meaning of the constructor parameters**
  
- The first parameter is the prefixMapDepth. It speeds up autocompletion, at the expense of memory usage. Practical values are 1, 2, 3 and 4.
+ The first parameter is prefixMapDepth. It speeds up autocompletion, at the expense of memory usage. Practical values are 1, 2, 3 and 4.
  Speed and memory usage are (for a list of 355k words):
  
  prefixMapDepth|speed| memory usage
@@ -107,7 +107,7 @@ ac, err := NewAutoCompleteLinoE(4, 10, 90)
  3|30k ns/completion (32k completions/sec)| 51 MB
  4|9k ns/completion (60k completions/sec)| 60 MB
  
- The second parameter is the result size. It means how many words you get for an autocompletion. So for example, a result size of 10 would yield these results for "chair":
+ The second parameter is the result size. It means how many words you get for an autocompletion. So for example, a result size of 5 would yield these results for "chair":
  
  chair
  chairborne
