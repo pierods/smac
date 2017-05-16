@@ -1,19 +1,108 @@
 <!DOCTYPE html>
 <title>SMAC Demo</title>
 <html>
+
+<head>
+  <style>
+    /* The container <div> - needed to position the dropdown content */
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    /* Dropdown Content (Hidden by Default) */
+
+    .dropdown-content {
+      display: block; // "none" to hide
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+    /* Links inside the dropdown */
+
+    .dropdown-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    /* Change color of dropdown links on hover */
+
+    .dropdown-content a:hover {
+      background-color: #f1f1f1
+    }
+    /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+
+    .show {
+      display: block;
+    }
+  </style>
+</head>
+
 <body>
 
-<h1>SMAC Demo</h1>
+  <h1>SMAC Demo</h1>
+  <form>
+    <textarea id="smactext" name="smactext" cols="120" rows="4" onKeyUp='complete("Press")'></textarea>
+  </form>
 
-<form>
-<textarea name="smactext" cols="120" rows="4" onKeyPress='showDialog("Press")'>
-</textarea>
-</form>
+  <div class="dropdown">
+    <div id="myDropdown" class="dropdown-content">
+    </div>
+  </div>
 
-<script>
-	function showDialog(type){
-      alert("An onKey" + type + " event just occurred");
+
+  <script>
+    function complete(type) {
+      boxText = document.getElementById("smactext").value
+      el = document.getElementById("myDropdown")
+
+      if (boxText.endsWith(" "))  {
+        while (el.hasChildNodes()) {
+          el.removeChild(el.lastChild);
+        }
+      } else {
+        words = boxText.split(" ")
+        lastWord = words[words.length -1]
+      }
+      var xhttp = new XMLHttpRequest();
+      xhttp.open("GET", "http://localhost:30000/complete/" + lastWord, false);
+      xhttp.send();
+      var completions = JSON.parse(xhttp.responseText);
+
+      while (el.hasChildNodes()) {
+        el.removeChild(el.lastChild);
+      }
+      //alert(response)
+      for (count = 0; count < completions.length; count++) {
+        newEl = document.createElement('a');
+        newEl.setAttribute('href', "#");
+        t = document.createTextNode(completions[count]);
+        newEl.appendChild(t)
+        el.appendChild(newEl)
+      }
+      //el.classList.toggle("show");
+
     }
-</script>
+
+
+    // Close the dropdown menu if the user clicks outside of it
+    window.onclick = function(event) {
+      if (!event.target.matches('.dropbtn')) {
+
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    }
+  </script>
 </body>
+
 </html>

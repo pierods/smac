@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/pierods/smac"
 )
 
@@ -25,7 +26,7 @@ func handler(rw http.ResponseWriter, r *http.Request) {
 		stem := splitPath[2]
 
 		completions, err := autoComplete.Complete(stem)
-		rw.Header().Set("Content/Type", "application/json")
+		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(200)
 		if err != nil {
 			rw.Write([]byte(""))
@@ -65,6 +66,8 @@ func main() {
 		os.Exit(-1)
 	}
 
+	f.Close()
+
 	wordFile := goPath + "/src/github.com/pierods/smac/demo/allwords.txt"
 
 	var err error
@@ -77,7 +80,44 @@ func main() {
 	}
 	autoComplete = &autoCompleteL
 
+	watcher := watch(homeFile)
+	defer watcher.Close()
 	http.HandleFunc("/", handler)
 	fmt.Println("Listener : Started : Listening on port 30000")
 	http.ListenAndServe(":30000", nil)
+}
+
+func watch(fileName string) *fsnotify.Watcher {
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					fmt.Println("re-reading file:", event.Name)
+					f, fErr := os.Open(fileName)
+					if fErr != nil {
+						fmt.Println(fErr)
+						os.Exit(-1)
+					}
+					home, fErr = ioutil.ReadAll(f)
+				}
+			case err := <-watcher.Errors:
+				fmt.Println("error:", err)
+			}
+		}
+	}()
+
+	err = watcher.Add(fileName)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+	return watcher
 }
