@@ -1,6 +1,8 @@
 
 # SMAC - Small autocompletion engine in Go.
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 SMAC is a tiny autocompletion engine written in Go. It supports UTF-8 alphabets. Emphasis is on speed and simplicity.
 
 Performance on a 355k word dictionary on a modern computer is (see benchmark files):

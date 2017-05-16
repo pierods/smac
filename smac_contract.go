@@ -1,7 +1,7 @@
 // Copyright Piero de Salvia.
 // All Rights Reserved
 
-// SMAC is a small autocompleter with an emphasis on simplicity and performance.
+// SMAC is a small autocomplete engine with an emphasis on simplicity and performance.
 package smac
 
 // The default result size (number of hits for a given stem) and radius (max lenght of words the autocompleter will
