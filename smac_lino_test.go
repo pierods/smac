@@ -526,20 +526,54 @@ func Test_LinoE(t *testing.T) {
 	}
 	t.Log("Should be able to learn words after the first", checkMark)
 
+	autoComplete, _ = NewAutoCompleteLinoE(2, 0, 0)
+	autoComplete.Learn("3333")
+	autoComplete.Learn("3344")
+
+	ac, _ = autoComplete.Complete("33")
+	if !reflect.DeepEqual(ac, []string{"3333", "3344"}) {
+		t.Fatal("Should be able to learn words when building dictionary from head", ballotX)
+	}
+	t.Log("Should be able to learn words when building dictionary from head", checkMark)
+
 }
 
-func Example_NewAutoCompleteLinoS() {
+func ExampleNewAutoCompleteLinoS() {
 
-	words := []string{"chair", "chairman", "chairperson", "chairwoman"}
+	words := []string{"chair", "chairman", "chairperson", "chairwoman", "chairmaker", "chairmaking"}
 	autoComplete, err := NewAutoCompleteLinoS(words, 2, 0, 0)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	completes, err := autoComplete.Complete("chair")
+	completes, err := autoComplete.Complete("chairm")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println(completes)
+	// Output: [chairmaker chairmaking chairman]
+
+}
+
+func ExampleNewAutoCompleteLinoE() {
+
+	words := []string{"chair", "chairman", "chairperson", "chairwoman", "chairmaker", "chairmaking"}
+	autoComplete, err := NewAutoCompleteLinoE(2, 0, 0)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for _, w := range words {
+		autoComplete.Learn(w)
+	}
+
+	completes, err := autoComplete.Complete("chairm")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(completes)
+	// Output: [chairmaker chairmaking chairman]
+
 }

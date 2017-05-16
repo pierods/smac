@@ -496,19 +496,20 @@ func Test_TrieSaveRetrieve(t *testing.T) {
 	}
 }
 
-func Example_Trie_test() {
+func ExampleNewAutoCompleteTrieS() {
 
 	myAlphabet := "abcdefghijklmnopqrstuvwxyz"
-	words := []string{"chair", "chairman", "chairperson", "chairwoman"}
+	words := []string{"chair", "chairman", "chairperson", "chairwoman", "chairmaker", "chairmaking"}
 	autoComplete, err := NewAutoCompleteTrieS(myAlphabet, words, 0, 0)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	completes, err := autoComplete.Complete("chair")
+	completes, err := autoComplete.Complete("chairm")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println(completes)
+	// Output: [chairman chairmaker chairmaking]
 }

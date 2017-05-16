@@ -223,8 +223,15 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 	if prevWord != autoComplete.head {
 		newLino.next = prevLino.next
 		prevLino.next = word
-	} else {
-		newLino.next = autoComplete.head
+	} else { // we're at head
+		if autoComplete.head != "" {
+			if word > autoComplete.head {
+				newLino.next = autoComplete.wordMap[autoComplete.head].next
+				autoComplete.wordMap[autoComplete.head].next = word
+			} else {
+				newLino.next = autoComplete.head
+			}
+		}
 	}
 
 	if autoComplete.head > word || autoComplete.head == "" {
