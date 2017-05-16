@@ -69,11 +69,14 @@ func main() {
 
 	var err error
 
-	autoComplete, err = smac.NewAutoCompleteLinoF(wordFile, 0, 0)
+	autoCompleteL, err := smac.NewAutoCompleteLinoF(wordFile, 2, 0, 0)
+
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+	autoComplete = &autoCompleteL
+
 	http.HandleFunc("/", handler)
 	fmt.Println("Listener : Started : Listening on port 30000")
 	http.ListenAndServe(":30000", nil)
