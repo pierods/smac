@@ -66,11 +66,10 @@ func main() {
 	}
 
 	wordFile := goPath + "/src/github.com/pierods/smac/demo/allwords.txt"
-	alphabet := "abcdefghijklmnopqrstuvwxyz1234567890'/&\""
 
 	var err error
 
-	autoComplete, err = smac.NewAutoCompleteF(alphabet, wordFile, 0, 0)
+	autoComplete, err = smac.NewAutoCompleteLinoF(wordFile, 0, 0)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(-1)

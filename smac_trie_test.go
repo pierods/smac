@@ -136,7 +136,7 @@ func Test_TrieLIFO(t *testing.T) {
 func Test_TrieRunesToInts(t *testing.T) {
 
 	words := []string{"aaa", "aaaa", "aaab", "aaac"}
-	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 
 	t.Log("Given the need to test the runesToInts() function")
 	{
@@ -176,7 +176,7 @@ func Test_TrieRunesToInts(t *testing.T) {
 func Test_TrieConstruction(t *testing.T) {
 	words := []string{"abc"}
 
-	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 
 	t.Log("Given the need to test the putIter() function")
 	{
@@ -209,7 +209,7 @@ func Test_TrieConstruction(t *testing.T) {
 	{
 		rAlphabet := "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
 		words = []string{"абзац"}
-		autoComplete, err := NewAutoCompleteS(rAlphabet, words, 0, 0)
+		autoComplete, err := NewAutoCompleteTrieS(rAlphabet, words, 0, 0)
 		if err != nil {
 			t.Fatal("Should be able to instantiate an autcomplete on a non-ASCII alphabet", ballotX)
 		}
@@ -235,7 +235,7 @@ func Test_TrieConstruction(t *testing.T) {
 func Test_TrieCompletion(t *testing.T) {
 
 	words := []string{"aaa", "aaab", "aaac", "aaad", "abbbbb"}
-	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 	ac1, _ := autoComplete.Complete("aaa")
 
 	t.Log("Given the need to test the completion feature")
@@ -250,7 +250,7 @@ func Test_TrieCompletion(t *testing.T) {
 		}
 		t.Log("Should be able to autocomplete on a stem word by alphabetical order and then by length", checkMark)
 
-		_, err := NewAutoCompleteS(alphabet, []string{"漢", "字"}, 0, 0)
+		_, err := NewAutoCompleteTrieS(alphabet, []string{"漢", "字"}, 0, 0)
 		if err == nil {
 			t.Fatal("Should be able to reject non-alphabet words", ballotX)
 		}
@@ -260,7 +260,7 @@ func Test_TrieCompletion(t *testing.T) {
 
 func Test_TrieLearn(t *testing.T) {
 	words := []string{"aaa", "b"}
-	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 	err := autoComplete.Learn("aaabbb")
 	if err != nil {
 		t.Fatal(err)
@@ -309,7 +309,7 @@ func Test_TrieLearn(t *testing.T) {
 	t.Log("Given the need to test the UnLearn feature")
 	{
 		words := []string{"aaa", "aaab", "aaabbb", "aaabbbc", "ddd"}
-		autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+		autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 		autoComplete.UnLearn("aaabbbc")
 		ac, _ := autoComplete.Complete("aaa")
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaabbb"}) {
@@ -364,7 +364,7 @@ func Test_TrieAccept(t *testing.T) {
 	t.Log("Given the need to test the Accept feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"} // Complete() always sorts by length and then alphabetically
-		autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+		autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 		autoComplete.Accept("aaad")
 		ac, _ := autoComplete.Complete("aaa")
 
@@ -386,7 +386,7 @@ func Test_TrieResultSizeAndRadius(t *testing.T) {
 	t.Log("Given the need to test the Result size feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"}
-		autoComplete, _ := NewAutoCompleteS(alphabet, words, 3, 4)
+		autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 3, 4)
 		ac, _ := autoComplete.Complete("aaa")
 
 		if !reflect.DeepEqual(ac, []string{"aaa", "aaab", "aaac"}) {
@@ -398,7 +398,7 @@ func Test_TrieResultSizeAndRadius(t *testing.T) {
 	{
 		numAlphabet := "1234567890"
 		words := []string{"1234", "12345", "123456", "1234567", "12345678"}
-		autoComplete, _ := NewAutoCompleteS(numAlphabet, words, 10, 4)
+		autoComplete, _ := NewAutoCompleteTrieS(numAlphabet, words, 10, 4)
 		ac, _ := autoComplete.Complete("1234")
 		if !reflect.DeepEqual(ac, []string{"1234"}) {
 			t.Fatal("Should be able to limit radius", ballotX)
@@ -416,7 +416,7 @@ func Test_TrieSaveRetrieve(t *testing.T) {
 	}
 	fName := tempFile.Name()
 	words := []string{"aaa", "aaabbb", "bbb", "ccc"}
-	autoComplete, _ := NewAutoCompleteS(alphabet, words, 0, 0)
+	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 	autoComplete.Accept("aaabbb")
 	autoComplete.Learn("ddd")
 	autoComplete.Learn("eee")
@@ -473,7 +473,7 @@ func Test_TrieSaveRetrieve(t *testing.T) {
 		}
 		t.Log("Should be able to read back a second saved word", checkMark)
 
-		autoComplete, _ = NewAutoCompleteS(alphabet, words, 0, 0)
+		autoComplete, _ = NewAutoCompleteTrieS(alphabet, words, 0, 0)
 		err = autoComplete.Retrieve(fName)
 		if err != nil {
 			t.Fatal(err)
@@ -500,7 +500,7 @@ func Example_Trie_test() {
 
 	myAlphabet := "abcdefghijklmnopqrstuvwxyz"
 	words := []string{"chair", "chairman", "chairperson", "chairwoman"}
-	autoComplete, err := NewAutoCompleteS(myAlphabet, words, 0, 0)
+	autoComplete, err := NewAutoCompleteTrieS(myAlphabet, words, 0, 0)
 	if err != nil {
 		fmt.Println(err)
 		return

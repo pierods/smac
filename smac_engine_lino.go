@@ -30,10 +30,29 @@ type AutoCompleteLiNo struct {
 	prefixMapDepth int
 }
 
+// NewAutoCompleteLinoE returns a new, empty autocompleter.
+//
+// prefixMapDepth is an index of performance (the higher the better). It should be comprised between 1 and 4.
+//
+// resultSize is the number of hits returned. If 0 is used, it defaults to DEF_RESULTS_SIZE
+//
+// radius is the depth of the scan the engine will perform while autocompleting. If 0 is used, it defaults to DEF_RADIUS
+//
+// The returned completer does not contain any words to be completed. New words can be added to it by using the Learn()
+// function
 func NewAutoCompleteLinoE(prefixMapDepth, resultSize, radius uint) (AutoCompleteLiNo, error) {
 	return NewAutoCompleteLinoS([]string{}, prefixMapDepth, resultSize, radius)
 }
 
+// NewAutoCompleteLinoF returns a new autocompleter.
+//
+// dictionaryFileName is the name of a dictionary file (a file containing words) to be used for completion.
+//
+// resultSize is the number of hits returned. If 0 is used, it defaults to DEF_RESULTS_SIZE
+//
+// radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
+//
+// New words can be added to it by using the Learn() function
 func NewAutoCompleteLinoF(dictionaryFileName string, prefixMapDepth, resultSize, radius uint) (AutoCompleteLiNo, error) {
 
 	var nAc AutoCompleteLiNo
@@ -75,6 +94,17 @@ func makePrefixMap(sortedDictionary []string, maxDepth int) map[string]string {
 	return prefixes
 }
 
+// NewAutoCompleteLinoS returns a new autocompleter.
+//
+// dictionary is a slice of words to be used for completion.
+//
+// prefixMapDepth is an index of performance (the higher the better). It should be comprised between 1 and 4.
+//
+// resultSize is the number of hits returned. If 0 is used, it defaults to DEF_RESULTS_SIZE
+//
+// radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
+//
+// New words can be added to it by using the Learn() function
 func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radius uint) (AutoCompleteLiNo, error) {
 
 	var nAc AutoCompleteLiNo
@@ -110,8 +140,11 @@ func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radiu
 		linop = newLinop
 
 	}
-	autoComplete.head = dictionary[0]
-	autoComplete.tail = dictionary[len(dictionary)-1]
+	if len(dictionary) > 0 {
+		autoComplete.head = dictionary[0]
+		autoComplete.tail = dictionary[len(dictionary)-1]
+	}
+
 	autoComplete.prefixMap = makePrefixMap(dictionary, int(prefixMapDepth))
 	autoComplete.prefixMapDepth = int(prefixMapDepth)
 
@@ -194,7 +227,7 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 		newLino.next = autoComplete.head
 	}
 
-	if autoComplete.head > word {
+	if autoComplete.head > word || autoComplete.head == "" {
 		autoComplete.head = word
 	}
 	if autoComplete.tail < word {

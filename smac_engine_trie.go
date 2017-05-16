@@ -30,7 +30,7 @@ type AutoCompleteTrie struct {
 	removedWords map[string]byte
 }
 
-// NewAutoCompleteE returns a new, empty autocompleter for a given alphabet (set of runes).
+// NewAutoCompleteTrieE returns a new, empty autocompleter for a given alphabet (set of runes).
 //
 // resultSize is the number of hits returned. If 0 is used, it defaults to DEF_RESULTS_SIZE
 //
@@ -69,7 +69,7 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoCompleteTri
 	return autoComplete, nil
 }
 
-// NewAutoCompleteS returns a new autocompleter for a given alphabet (set of runes).
+// NewAutoCompleteTrieS returns a new autocompleter for a given alphabet (set of runes).
 //
 // dictionary is a slice of words to be used for completion.
 //
@@ -78,7 +78,7 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoCompleteTri
 // radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
 //
 // New words can be added to it by using the Learn() function
-func NewAutoCompleteS(alphabet string, dictionary []string, resultSize, radius uint) (AutoCompleteTrie, error) {
+func NewAutoCompleteTrieS(alphabet string, dictionary []string, resultSize, radius uint) (AutoCompleteTrie, error) {
 
 	var nAc AutoCompleteTrie
 
@@ -126,7 +126,7 @@ func NewAutoCompleteS(alphabet string, dictionary []string, resultSize, radius u
 // radius is the max length of words the engine will search while autocompleting. If 0 is used, it defaults to DEF_RADIUS
 //
 // New words can be added to it by using the Learn() function
-func NewAutoCompleteF(alphabet, dictionaryFileName string, resultSize, radius uint) (AutoCompleteTrie, error) {
+func NewAutoCompleteTrieF(alphabet, dictionaryFileName string, resultSize, radius uint) (AutoCompleteTrie, error) {
 
 	var nAc AutoCompleteTrie
 	if len(alphabet) == 0 {

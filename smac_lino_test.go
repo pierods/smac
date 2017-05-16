@@ -455,6 +455,79 @@ func Test_LinoComplete(t *testing.T) {
 
 }
 
+func Test_LinoE(t *testing.T) {
+
+	autoComplete, _ := NewAutoCompleteLinoE(2, 0, 0)
+
+	ac, _ := autoComplete.Complete("chair")
+	if !reflect.DeepEqual(ac, []string{}) {
+		t.Fatal("Should be able to initialize an empty autocompleter", ballotX)
+	}
+	t.Log("Should be able to initialize an empty autocompleter", checkMark)
+
+	autoComplete.Learn("vvvaaa")
+	ac, _ = autoComplete.Complete("chair")
+	if !reflect.DeepEqual(ac, []string{}) {
+		t.Fatal("Should be able to learn the first word", ballotX)
+	}
+	t.Log("Should be able to learn the first word", checkMark)
+	ac, _ = autoComplete.Complete("v")
+	if !reflect.DeepEqual(ac, []string{"vvvaaa"}) {
+		t.Fatal("Should be able to learn the first word", ballotX)
+	}
+	t.Log("Should be able to learn the first word", checkMark)
+
+	ac, _ = autoComplete.Complete("vv")
+	if !reflect.DeepEqual(ac, []string{"vvvaaa"}) {
+		t.Fatal("Should be able to learn the first word", ballotX)
+	}
+	t.Log("Should be able to learn the first word", checkMark)
+
+	ac, _ = autoComplete.Complete("vvva")
+	if !reflect.DeepEqual(ac, []string{"vvvaaa"}) {
+		t.Fatal("Should be able to learn the first word", ballotX)
+	}
+	t.Log("Should be able to learn the first word", checkMark)
+
+	autoComplete.Learn("aabc")
+	autoComplete.Learn("aaaa")
+	autoComplete.Learn("bbb")
+	autoComplete.Learn("abc")
+	autoComplete.Learn("vvv")
+	autoComplete.Learn("v")
+
+	ac, _ = autoComplete.Complete("aa")
+	if !reflect.DeepEqual(ac, []string{"aaaa", "aabc"}) {
+		t.Fatal("Should be able to learn words after the first", ballotX)
+	}
+	t.Log("Should be able to learn words after the first", checkMark)
+
+	ac, _ = autoComplete.Complete("v")
+	if !reflect.DeepEqual(ac, []string{"v", "vvv", "vvvaaa"}) {
+		t.Fatal("Should be able to learn words after the first", ballotX)
+	}
+	t.Log("Should be able to learn words after the first", checkMark)
+
+	ac, _ = autoComplete.Complete("vv")
+	if !reflect.DeepEqual(ac, []string{"vvv", "vvvaaa"}) {
+		t.Fatal("Should be able to learn words after the first", ballotX)
+	}
+	t.Log("Should be able to learn words after the first", checkMark)
+
+	ac, _ = autoComplete.Complete("b")
+	if !reflect.DeepEqual(ac, []string{"bbb"}) {
+		t.Fatal("Should be able to learn words after the first", ballotX)
+	}
+	t.Log("Should be able to learn words after the first", checkMark)
+
+	ac, _ = autoComplete.Complete("bb")
+	if !reflect.DeepEqual(ac, []string{"bbb"}) {
+		t.Fatal("Should be able to learn words after the first", ballotX)
+	}
+	t.Log("Should be able to learn words after the first", checkMark)
+
+}
+
 func Example_NewAutoCompleteLinoS() {
 
 	words := []string{"chair", "chairman", "chairperson", "chairwoman"}
