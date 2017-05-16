@@ -3,6 +3,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![](https://godoc.org/github.com/pierods/smac?status.svg)](http://godoc.org/github.com/pierods/smac)
+[![Build Status](https://travis-ci.org/pierods/smac.svg?branch=master)](https://travis-ci.org/pierods/smac)
 
 SMAC is a tiny autocompletion engine written in Go. It supports UTF-8 alphabets. Emphasis is on speed and simplicity.
 
