@@ -15,7 +15,7 @@ import (
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
-func Test_TrieFIFO(t *testing.T) {
+func TestTrieFIFO(t *testing.T) {
 
 	var fifo fIFO
 
@@ -80,7 +80,7 @@ func Test_TrieFIFO(t *testing.T) {
 	}
 }
 
-func Test_TrieLIFO(t *testing.T) {
+func TestTrieLIFO(t *testing.T) {
 
 	var lifo lIFO
 
@@ -133,7 +133,7 @@ func Test_TrieLIFO(t *testing.T) {
 	}
 }
 
-func Test_TrieRunesToInts(t *testing.T) {
+func TestTrieRunesToInts(t *testing.T) {
 
 	words := []string{"aaa", "aaaa", "aaab", "aaac"}
 	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
@@ -173,7 +173,7 @@ func Test_TrieRunesToInts(t *testing.T) {
 
 }
 
-func Test_TrieConstruction(t *testing.T) {
+func TestTrieConstruction(t *testing.T) {
 	words := []string{"abc"}
 
 	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
@@ -232,7 +232,7 @@ func Test_TrieConstruction(t *testing.T) {
 	}
 }
 
-func Test_TrieCompletion(t *testing.T) {
+func TestTrieCompletion(t *testing.T) {
 
 	words := []string{"aaa", "aaab", "aaac", "aaad", "abbbbb"}
 	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
@@ -258,7 +258,7 @@ func Test_TrieCompletion(t *testing.T) {
 	}
 }
 
-func Test_TrieLearn(t *testing.T) {
+func TestTrieLearn(t *testing.T) {
 	words := []string{"aaa", "b"}
 	autoComplete, _ := NewAutoCompleteTrieS(alphabet, words, 0, 0)
 	err := autoComplete.Learn("aaabbb")
@@ -360,7 +360,7 @@ func Test_TrieLearn(t *testing.T) {
 		t.Log("Should be able to correctly manage the removed word list for new words", checkMark)
 	}
 }
-func Test_TrieAccept(t *testing.T) {
+func TestTrieAccept(t *testing.T) {
 	t.Log("Given the need to test the Accept feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"} // Complete() always sorts by length and then alphabetically
@@ -382,7 +382,7 @@ func Test_TrieAccept(t *testing.T) {
 	}
 }
 
-func Test_TrieResultSizeAndRadius(t *testing.T) {
+func TestTrieResultSizeAndRadius(t *testing.T) {
 	t.Log("Given the need to test the Result size feature")
 	{
 		words := []string{"aaa", "aaab", "aaac", "aaabbb", "aaad"}
@@ -407,7 +407,7 @@ func Test_TrieResultSizeAndRadius(t *testing.T) {
 	}
 }
 
-func Test_TrieSaveRetrieve(t *testing.T) {
+func TestTrieSaveRetrieve(t *testing.T) {
 
 	tempDir := os.TempDir()
 	tempFile, err := ioutil.TempFile(tempDir, "smac")

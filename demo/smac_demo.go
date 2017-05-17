@@ -47,6 +47,7 @@ func handler(rw http.ResponseWriter, r *http.Request) {
 				autoComplete.Accept(acceptedWord)
 			}
 		}
+		fmt.Println("accept")
 		rw.WriteHeader(200)
 		return
 	}
@@ -114,6 +115,11 @@ func watch(fileName string) *fsnotify.Watcher {
 						os.Exit(-1)
 					}
 					home, fErr = ioutil.ReadAll(f)
+					if fErr != nil {
+						fmt.Println(fErr)
+						os.Exit(-1)
+					}
+					f.Close()
 				}
 			case err := <-watcher.Errors:
 				fmt.Println("error:", err)

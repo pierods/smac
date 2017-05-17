@@ -56,7 +56,7 @@ func initTestVals() {
 	sort.Strings(words)
 }
 
-func Test_LinoConstruction(t *testing.T) {
+func TestLinoConstruction(t *testing.T) {
 
 	initTestVals()
 
@@ -114,7 +114,7 @@ func Test_LinoConstruction(t *testing.T) {
 	}
 }
 
-func Test_LinoFindPreviousWord(t *testing.T) {
+func TestLinoFindPreviousWord(t *testing.T) {
 
 	initTestVals()
 	t.Log("Given the need to test the lino navigation function")
@@ -149,7 +149,7 @@ func Test_LinoFindPreviousWord(t *testing.T) {
 	}
 }
 
-func Test_LinoLearnCoherence(t *testing.T) {
+func TestLinoLearnCoherence(t *testing.T) {
 
 	initTestVals()
 
@@ -223,7 +223,7 @@ func Test_LinoLearnCoherence(t *testing.T) {
 	}
 }
 
-func Test_LinoUnLearnCoherence(t *testing.T) {
+func TestLinoUnLearnCoherence(t *testing.T) {
 
 	initTestVals()
 
@@ -310,7 +310,7 @@ func Test_LinoUnLearnCoherence(t *testing.T) {
 	}
 }
 
-func Test_LinoSaveAndRetrieve(t *testing.T) {
+func TestLinoSaveAndRetrieve(t *testing.T) {
 	tempDir := os.TempDir()
 	tempFile, err := ioutil.TempFile(tempDir, "smac")
 	if err != nil {
@@ -404,7 +404,7 @@ func Test_LinoSaveAndRetrieve(t *testing.T) {
 	}
 }
 
-func Test_LinoAccept(t *testing.T) {
+func TestLinoAccept(t *testing.T) {
 
 	initTestVals()
 	autoComplete, _ := NewAutoCompleteLinoS(words, 2, 0, 0)
@@ -425,7 +425,7 @@ func Test_LinoAccept(t *testing.T) {
 
 }
 
-func Test_LinoComplete(t *testing.T) {
+func TestLinoComplete(t *testing.T) {
 	words = []string{"aaa", "aaa1", "aaa2", "aaa3", "aaa4", "aaa5", "aaa6", "aaa7", "bbb"}
 	autoComplete, _ := NewAutoCompleteLinoS(words, 2, 0, 0)
 	ac, _ := autoComplete.Complete("a")
@@ -455,7 +455,7 @@ func Test_LinoComplete(t *testing.T) {
 
 }
 
-func Test_LinoE(t *testing.T) {
+func TestLinoE(t *testing.T) {
 
 	autoComplete, _ := NewAutoCompleteLinoE(2, 0, 0)
 

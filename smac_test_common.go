@@ -54,7 +54,7 @@ var Words []string
 var Prefixes []string
 var Wl, Pl int
 
-func Test_TrieSOLILI(t *testing.T) {
+func TestTrieSOLILI(t *testing.T) {
 
 	t.Log("Given the need to test a sorted linked list")
 	{
