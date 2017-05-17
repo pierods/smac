@@ -1,5 +1,5 @@
 
-# SMAC - Small autocompletion engine in Go.
+# SMAC - Small autocompletion engine in Go
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![](https://godoc.org/github.com/pierods/smac?status.svg)](http://godoc.org/github.com/pierods/smac)
@@ -29,7 +29,7 @@ could be adapted to it.
 
 You would usually find a dictionary file and bootstrap SMAC from it:
 ```Go
-ac, err := NewAutoCompleteLinoF(wordFile, 4, 10, 90)
+ac, err := NewAutoCompleteLinoF("/home/....", 4, 10, 90)
 	if err != nil {
 		os.Exit(-1)
 	}
@@ -43,7 +43,7 @@ fmt.Println(ac)
 ```
 To make SMAC smarter, make sure to Accept() every word that is selected after autocompletion:
 ```Go
-err := autoComplete.Learn("chairman")
+err := autoComplete.Accept("chairman")
 if err != nil {
   // do something
  }
@@ -139,17 +139,17 @@ Autocompletion is basically about building a data structure containing all possi
 
 Human reaction time is in the hundreds of milliseconds, so an autocompletion should last less than that.
 
-Three challenges present themselves: being able to quickly the first word corresponding to a given prefix, being able to quickly scan the chosen data structure until all the possible alternatives (completions) are found and not generating an exponentially big number of nodes in the chosen data structure (the set of all prefixes of a given dictionary can grow exponentially).
+Three challenges present themselves: being able to quickly find the first word corresponding to a given prefix, being able to quickly scan the chosen data structure until all the possible alternatives (completions) are found and not generating an exponentially big number of nodes in the chosen data structure (the set of all prefixes of a given dictionary can grow exponentially).
 
 **Speed of access**
 
-The fastest data structure for finding a given prefix in a set of words is the trie (radix tree). Every possible prefix has the shortest, direct path in its tree. Access costs O(M) time, being M the length of the desired string - can be neglected. Once pointing to the desired word, you can simply scan its subtree with a BFS algorithm, which has linear cost (proportional to the subtree of words for that prefix). So the overall cost is amortized linear.
+The fastest data structure for finding a given prefix in a set of words is the trie (radix tree). Every possible prefix has the shortest, direct path in its tree. Access costs O(M) time, being M the length of the desired string - can be neglected. Once pointing to the desired word, you can simply scan its subtree, which has linear cost (proportional to the number of results desired, usually a small number). The penalty here is that words have to be assembled from initials in the trie, for each initial. The overall cost then is O(m²) where m is the result size - basically  a small, quasi-fixed cost.
 
- The AVL tree can get to the first word starting with the desired prefix in O(log n), many orders of magnitude under human reaction time. Once the desired word is found, scanning its subtree has also a logarithmic cost, so the overall cost is n * lg n.
+ The AVL tree can get to the first word starting with the desired prefix in O(log n), many orders of magnitude under human reaction time. Once the desired word is found, scanning its subtree has also a logarithmic cost, limited to the result size, say m, so the overall cost is m * lg n, a very small number.
 
 **Data structure size**
 
-A regular trie is simply not practical for autocompletion. The number of nodes explodes exponentially - a dictionary of 355k word generates an 800MB trie.
+A regular trie is simply not practical for autocompletion. The number of nodes explodes exponentially - a dictionary of 355k words generates an 800MB trie.
 An alternative is a compressed trie, at the cost of increased implementation complexity.
 
 An AVL tree is a better choice since the storage cost is simply an overhead of two pointers per key.
@@ -157,7 +157,7 @@ An AVL tree is a better choice since the storage cost is simply an overhead of t
 **An alternative approach**
 
 Simplifying the programming of SMAC has led me to searching for an alternative approach.
-I thought of just storing the dictionaary in a (Go) dictionary, where the words are keys, and the value for each word is simply the next word. This creates a sort of linked list of words:
+I thought of just storing the dictionary in a (Go) map, where the words are keys, and the value for each word is simply the next word. This creates a sort of linked list of words:
 
 ![word map](assets/map.png)
 
@@ -165,6 +165,17 @@ Once the word map is filled, I then extract all prefixes that actually exist in 
 
 ![prefix map](assets/prefixes.png)
 
+This creates a sort of flattened trie with O(1) access cost.
+
 So for each autocompletion, first the prefix is looked up in the main word map. If it is found, a scan of the linked list starting at that word gives the completion.
 
 If the prefix is not found in the main word map (is now a complete word in itself) then the longest existing prefix in the prefix map is searched. Once found, a scan is made on the main word map, until a word is found that matches the stem (the prefix to be autocompleted). At that point, another scan gives the completion.
+
+**Cost of the approach**
+
+There are two factors involved, the first scan of the word map to find the first word starting with a given prefix (for prefixes longer than the maximum prefix in the prefix map) and then the cost of scanning the list from that hit.
+Let's say I built a prefix map up to prefixes of 3 chars. The average number of words having a prefix of length 3 in English is 580 (see stats.go), so the average search is 290 words.
+Once pointing to the desired word, I scan the word list up to my result size (usually a small number), a neglectable cost.
+Scanning a linked list of 290 elements with a string comparison at each has a very modest cost, also mitigated by the fact that the longer the stem (prefix) is, the more likely it is that it is a word in itself (sham/shamble for example) so it gets found in O(1) time in the main word list. 44% of 3-letter prefixes are complete words in English, so they are found in O(1) time.
+
+Overall, I got a performance penalty of 2 (with a prefix map of depth 4) over a trie.

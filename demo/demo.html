@@ -38,6 +38,7 @@
     .show {
       display: block;
     }
+
   </style>
 </head>
 
@@ -59,13 +60,14 @@
       boxText = document.getElementById("smactext").value
       el = document.getElementById("myDropdown")
 
-      if (boxText.endsWith(" "))  {
+      words = boxText.split(" ")
+      lastWord = words[words.length - 1]
+
+      if (boxText.endsWith(" ")) {
         while (el.hasChildNodes()) {
           el.removeChild(el.lastChild);
         }
-      } else {
-        words = boxText.split(" ")
-        lastWord = words[words.length -1]
+        return
       }
       var xhttp = new XMLHttpRequest();
       xhttp.open("GET", "http://localhost:30000/complete/" + lastWord, false);
@@ -81,12 +83,26 @@
         newEl.setAttribute('href', "#");
         t = document.createTextNode(completions[count]);
         newEl.appendChild(t)
+        newEl.setAttribute('onclick', 'submitWord(event)')
         el.appendChild(newEl)
       }
       //el.classList.toggle("show");
-
     }
 
+    function submitWord(event) {
+      word = event.target.text
+      boxText = document.getElementById("smactext").value
+      words = boxText.split(" ")
+      words[words.length -1] = word
+
+      newText = words.join(" ") + " "
+      document.getElementById("smactext").value = newText
+      el = document.getElementById("myDropdown")
+      while (el.hasChildNodes()) {
+        el.removeChild(el.lastChild);
+      }
+
+    }
 
     // Close the dropdown menu if the user clicks outside of it
     window.onclick = function(event) {

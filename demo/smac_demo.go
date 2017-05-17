@@ -37,11 +37,18 @@ func handler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if strings.HasPrefix(path, "/accept") {
+		splitPath := strings.Split(path, "/")
+		acceptedWord := splitPath[2]
 
-	}
-
-	if strings.HasPrefix(path, "/learn") {
-
+		err := autoComplete.Accept(acceptedWord)
+		if err != nil {
+			err = autoComplete.Learn(acceptedWord)
+			if err != nil {
+				autoComplete.Accept(acceptedWord)
+			}
+		}
+		rw.WriteHeader(200)
+		return
 	}
 
 	rw.Header().Set("Content/Type", "text/html")
