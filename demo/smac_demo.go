@@ -26,12 +26,13 @@ func handler(rw http.ResponseWriter, r *http.Request) {
 		stem := splitPath[2]
 
 		completions, err := autoComplete.Complete(stem)
-		rw.Header().Set("Content-Type", "application/json")
-		rw.WriteHeader(200)
 		if err != nil {
 			rw.Write([]byte(""))
 			return
 		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(200)
 		json.NewEncoder(rw).Encode(&completions)
 		return
 	}
@@ -47,7 +48,6 @@ func handler(rw http.ResponseWriter, r *http.Request) {
 				autoComplete.Accept(acceptedWord)
 			}
 		}
-		fmt.Println("accept")
 		rw.WriteHeader(200)
 		return
 	}
