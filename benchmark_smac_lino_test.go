@@ -27,33 +27,47 @@ var AcLino AutoCompleteLiNo
 
 func BenchmarkLinoCompleteWords(b *testing.B) {
 
+	var r []string
+
 	for i := 0; i < b.N; i++ {
 		w := Words[rand.Intn(Wl)]
-		AcLino.Complete(w)
+		r, _ = AcLino.Complete(w)
 	}
+
+	result = r
 }
 
 func BenchmarkLinoPrefixes(b *testing.B) {
 
+	var r []string
+
 	for i := 0; i < b.N; i++ {
 		p := Prefixes[rand.Intn(Pl)]
-		AcLino.Complete(p)
+		r, _ = AcLino.Complete(p)
 	}
+
+	result = r
 }
 
 func BenchmarkLinoMix(b *testing.B) {
+
+	var r []string
 
 	flip := false
 
 	for i := 0; i < b.N; i++ {
 		if flip {
 			p := Prefixes[rand.Intn(Pl)]
-			AcLino.Complete(p)
+			r, _ = AcLino.Complete(p)
 
 		} else {
 			w := Words[rand.Intn(Wl)]
-			AcLino.Complete(w)
+			r, _ = AcLino.Complete(w)
 		}
 		flip = !flip
 	}
+
+	result = r
 }
+
+var result []string
