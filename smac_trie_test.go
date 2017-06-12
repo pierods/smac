@@ -291,7 +291,7 @@ func TestTrieLearn(t *testing.T) {
 	t.Log("Given the need to test the learn from scratch feature")
 	{
 		alphabet := "abcdefghijklmnopqrstuvwxyz"
-		autoComplete, _ := NewAutoCompleteE(alphabet, 0, 0)
+		autoComplete, _ := NewAutoCompleteTrieE(alphabet, 0, 0)
 
 		ac, _ := autoComplete.Complete("aaa")
 		if !reflect.DeepEqual(ac, []string{}) {

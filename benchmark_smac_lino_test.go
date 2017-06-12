@@ -30,7 +30,7 @@ func BenchmarkLinoCompleteWords(b *testing.B) {
 	var r []string
 
 	for i := 0; i < b.N; i++ {
-		w := Words[rand.Intn(Wl)]
+		w := testWords[rand.Intn(wordsInTestData)]
 		r, _ = AcLino.Complete(w)
 	}
 
@@ -42,7 +42,7 @@ func BenchmarkLinoPrefixes(b *testing.B) {
 	var r []string
 
 	for i := 0; i < b.N; i++ {
-		p := Prefixes[rand.Intn(Pl)]
+		p := testPrefixes[rand.Intn(prefixesInTestData)]
 		r, _ = AcLino.Complete(p)
 	}
 
@@ -57,11 +57,11 @@ func BenchmarkLinoMix(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		if flip {
-			p := Prefixes[rand.Intn(Pl)]
+			p := testPrefixes[rand.Intn(prefixesInTestData)]
 			r, _ = AcLino.Complete(p)
 
 		} else {
-			w := Words[rand.Intn(Wl)]
+			w := testWords[rand.Intn(wordsInTestData)]
 			r, _ = AcLino.Complete(w)
 		}
 		flip = !flip

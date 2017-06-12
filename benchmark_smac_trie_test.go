@@ -29,7 +29,7 @@ var AcTrie AutoCompleteTrie
 func BenchmarkTrieCompleteWords(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
-		w := Words[rand.Intn(Wl)]
+		w := testWords[rand.Intn(wordsInTestData)]
 		AcTrie.Complete(w)
 	}
 }
@@ -37,7 +37,7 @@ func BenchmarkTrieCompleteWords(b *testing.B) {
 func BenchmarkTriePrefixes(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
-		p := Prefixes[rand.Intn(Pl)]
+		p := testPrefixes[rand.Intn(prefixesInTestData)]
 		AcTrie.Complete(p)
 	}
 }

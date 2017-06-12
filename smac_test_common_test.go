@@ -30,12 +30,12 @@ func initBenchmark() {
 
 	for lineScanner.Scan() {
 		line := lineScanner.Text()
-		Words = append(Words, line)
+		testWords = append(testWords, line)
 	}
-	Wl = len(Words)
+	wordsInTestData = len(testWords)
 
 	prefixes := make(map[string]bool)
-	for _, word := range Words {
+	for _, word := range testWords {
 		for i := 1; i < len(word); i++ {
 			acc := word[:i]
 			prefixes[acc] = true
@@ -43,16 +43,16 @@ func initBenchmark() {
 	}
 
 	for k := range prefixes {
-		Prefixes = append(Prefixes, k)
+		testPrefixes = append(testPrefixes, k)
 	}
 
-	Pl = len(Prefixes)
+	prefixesInTestData = len(testPrefixes)
 
 }
 
-var Words []string
-var Prefixes []string
-var Wl, Pl int
+var testWords []string
+var testPrefixes []string
+var wordsInTestData, prefixesInTestData int
 
 func TestTrieSOLILI(t *testing.T) {
 

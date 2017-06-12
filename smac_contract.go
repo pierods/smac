@@ -1,14 +1,14 @@
 // Copyright Piero de Salvia.
 // All Rights Reserved
 
-// SMAC is a small autocomplete engine with an emphasis on simplicity and performance.
+// Package smac is a small autocomplete engine with an emphasis on simplicity and performance.
 package smac
 
 // The default result size (number of hits for a given stem) and radius (max lenght of words the autocompleter will
 // descend to while searching)
 const (
-	DEF_RESULTS_SIZE = 10
-	DEF_RADIUS       = 15
+	DefaultResultSize = 10
+	DefaultRadius     = 15
 )
 
 // AutoComplete is an interface for an autocompleter. It can be used instead of the Lino implementation to future-proof code.

@@ -18,7 +18,7 @@ type trieNode struct {
 	links   []*trieNode
 }
 
-// Autocomplete represents the autocomplete engine.
+// AutoCompleteTrie represents the autocomplete engine.
 type AutoCompleteTrie struct {
 	root         *trieNode
 	alphabetMin  int
@@ -38,7 +38,7 @@ type AutoCompleteTrie struct {
 //
 // The returned completer does not contain any words to be completed. New words can be added to it by using the Learn()
 // function
-func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoCompleteTrie, error) {
+func NewAutoCompleteTrieE(alphabet string, resultSize, radius uint) (AutoCompleteTrie, error) {
 
 	var nAc AutoCompleteTrie
 	if len(alphabet) == 0 {
@@ -47,10 +47,10 @@ func NewAutoCompleteE(alphabet string, resultSize, radius uint) (AutoCompleteTri
 	min, max := minMax([]rune(alphabet))
 
 	if resultSize == 0 {
-		resultSize = DEF_RESULTS_SIZE
+		resultSize = DefaultResultSize
 	}
 	if radius == 0 {
-		radius = DEF_RADIUS
+		radius = DefaultRadius
 	}
 
 	autoComplete := AutoCompleteTrie{
@@ -88,10 +88,10 @@ func NewAutoCompleteTrieS(alphabet string, dictionary []string, resultSize, radi
 	min, max := minMax([]rune(alphabet))
 
 	if resultSize == 0 {
-		resultSize = DEF_RESULTS_SIZE
+		resultSize = DefaultResultSize
 	}
 	if radius == 0 {
-		radius = DEF_RADIUS
+		radius = DefaultRadius
 	}
 	autoComplete := AutoCompleteTrie{
 		alphabetMin:  int(min),
@@ -117,7 +117,7 @@ func NewAutoCompleteTrieS(alphabet string, dictionary []string, resultSize, radi
 	return autoComplete, nil
 }
 
-// NewAutoCompleteF returns a new autocompleter for a given alphabet (set of runes).
+// NewAutoCompleteTrieF returns a new autocompleter for a given alphabet (set of runes).
 //
 // dictionaryFileName is the name of a dictionary file (a file containing words) to be used for completion.
 //
@@ -135,10 +135,10 @@ func NewAutoCompleteTrieF(alphabet, dictionaryFileName string, resultSize, radiu
 	min, max := minMax([]rune(alphabet))
 
 	if resultSize == 0 {
-		resultSize = DEF_RESULTS_SIZE
+		resultSize = DefaultResultSize
 	}
 	if radius == 0 {
-		radius = DEF_RADIUS
+		radius = DefaultRadius
 	}
 
 	autoComplete := AutoCompleteTrie{
@@ -175,6 +175,7 @@ func NewAutoCompleteTrieF(alphabet, dictionaryFileName string, resultSize, radiu
 	return autoComplete, nil
 }
 
+// Accept : See description in AutoComplete interface
 func (autoComplete *AutoCompleteTrie) Accept(acceptedWord string) error {
 	acceptedWordInts, err := autoComplete.runesToInts(acceptedWord)
 	if err != nil {
@@ -206,6 +207,7 @@ func (autoComplete *AutoCompleteTrie) runesToInts(word string) ([]int, error) {
 	return conv, nil
 }
 
+// Learn : see interface
 func (autoComplete *AutoCompleteTrie) Learn(word string) error {
 	conv, err := autoComplete.runesToInts(word)
 	if err != nil {
@@ -251,6 +253,7 @@ func (autoComplete *AutoCompleteTrie) putIter(intVals []int) {
 
 }
 
+// UnLearn :  : See description in AutoComplete interface
 func (autoComplete *AutoCompleteTrie) UnLearn(word string) error {
 	conv, err := autoComplete.runesToInts(word)
 	if err != nil {
@@ -291,26 +294,26 @@ func (autoComplete *AutoCompleteTrie) remove(intVals []int) {
 		node.isWord = false
 		return
 
-	} else {
-		node.isWord = false
+	}
+	node.isWord = false
 
-		for lifo.size() > 0 {
-			parentNode := lifo.pop()
-			parentNode.links[node.intRune-autoComplete.alphabetMin] = nil
+	for lifo.size() > 0 {
+		parentNode := lifo.pop()
+		parentNode.links[node.intRune-autoComplete.alphabetMin] = nil
 
-			if parentNode.isWord {
+		if parentNode.isWord {
+			return
+		}
+		for _, link := range parentNode.links {
+			if link != nil {
 				return
 			}
-			for _, link := range parentNode.links {
-				if link != nil {
-					return
-				}
-			}
-			node = parentNode
 		}
+		node = parentNode
 	}
 }
 
+// Complete : see description in Autocomplete interface
 func (autoComplete *AutoCompleteTrie) Complete(word string) ([]string, error) {
 
 	ints, err := autoComplete.runesToInts(word)
@@ -407,6 +410,7 @@ func (lifo *lIFO) size() int {
 	return len(lifo.slice)
 }
 
+// Save : see description in AutoComplete interface
 func (autoComplete *AutoCompleteTrie) Save(fileName string) error {
 
 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
@@ -474,6 +478,7 @@ func (autoComplete *AutoCompleteTrie) Save(fileName string) error {
 	return f.Close()
 }
 
+// Retrieve : see description in AutoComplete interface
 func (autoComplete *AutoCompleteTrie) Retrieve(fileName string) error {
 
 	f, err := os.Open(fileName)

@@ -18,6 +18,7 @@ type liNo struct {
 	next    string
 }
 
+// AutoCompleteLiNo is a "list node" implementation of AutoComplete
 type AutoCompleteLiNo struct {
 	wordMap        map[string]*liNo
 	head           string
@@ -114,10 +115,10 @@ func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radiu
 	}
 
 	if resultSize == 0 {
-		resultSize = DEF_RESULTS_SIZE
+		resultSize = DefaultResultSize
 	}
 	if radius == 0 {
-		radius = DEF_RADIUS
+		radius = DefaultRadius
 	}
 
 	autoComplete := AutoCompleteLiNo{
@@ -151,6 +152,7 @@ func NewAutoCompleteLinoS(dictionary []string, prefixMapDepth, resultSize, radiu
 	return autoComplete, nil
 }
 
+// Complete : see description in AutoComplete interface
 func (autoComplete *AutoCompleteLiNo) Complete(stem string) ([]string, error) {
 
 	result := sOLILI{}
@@ -197,6 +199,7 @@ func (autoComplete *AutoCompleteLiNo) Complete(stem string) ([]string, error) {
 	return result.flushL(autoComplete.resultSize), nil
 }
 
+// Accept : see description in AutoComplete interface
 func (autoComplete *AutoCompleteLiNo) Accept(acceptedWord string) error {
 
 	var lino *liNo
@@ -208,6 +211,7 @@ func (autoComplete *AutoCompleteLiNo) Accept(acceptedWord string) error {
 	return nil
 }
 
+// Learn : see description in AutoComplete interface
 func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 
 	if _, exists := autoComplete.wordMap[word]; exists {
@@ -255,6 +259,7 @@ func (autoComplete *AutoCompleteLiNo) Learn(word string) error {
 	return nil
 }
 
+// UnLearn : see description in AutoComplete interface
 func (autoComplete *AutoCompleteLiNo) UnLearn(word string) error {
 
 	if _, exists := autoComplete.wordMap[word]; !exists {
@@ -325,6 +330,7 @@ func (autoComplete *AutoCompleteLiNo) findPreviousWord(word string) string {
 	return prevWord
 }
 
+// Save : see description in AutoComplete interface
 func (autoComplete *AutoCompleteLiNo) Save(fileName string) error {
 
 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
@@ -357,6 +363,7 @@ func (autoComplete *AutoCompleteLiNo) Save(fileName string) error {
 	return f.Close()
 }
 
+// Retrieve : see description in AutoComplete interface
 func (autoComplete *AutoCompleteLiNo) Retrieve(fileName string) error {
 	f, err := os.Open(fileName)
 	defer f.Close()
