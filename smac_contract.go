@@ -4,7 +4,7 @@
 // Package smac is a small autocomplete engine with an emphasis on simplicity and performance.
 package smac
 
-// The default result size (number of hits for a given stem) and radius (max lenght of words the autocompleter will
+// The default result size (number of hits for a given stem) and radius (max length of words the autocompleter will
 // descend to while searching)
 const (
 	DefaultResultSize = 10
