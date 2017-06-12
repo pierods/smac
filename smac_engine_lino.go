@@ -348,7 +348,7 @@ func (autoComplete *AutoCompleteLiNo) Save(fileName string) error {
 		}
 	}
 
-	for w, _ := range autoComplete.removedWords {
+	for w := range autoComplete.removedWords {
 		enc.Encode(wordAccepts{
 			w,
 			-1,

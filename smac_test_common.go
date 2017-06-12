@@ -42,7 +42,7 @@ func initBenchmark() {
 		}
 	}
 
-	for k, _ := range prefixes {
+	for k := range prefixes {
 		Prefixes = append(Prefixes, k)
 	}
 

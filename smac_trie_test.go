@@ -343,7 +343,7 @@ func TestTrieLearn(t *testing.T) {
 		t.Log("Should be able to unlearn whole tree", checkMark)
 		removed := []string{}
 
-		for w, _ := range autoComplete.removedWords {
+		for w := range autoComplete.removedWords {
 			removed = append(removed, w)
 		}
 		sort.Strings(removed)
